@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoD | IAM Conceitos</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --navy:#003366;--navy-mid:#004080;--navy-light:#0056b3;--accent:#c8922a;
+  --accent-light:#e8a83a;--bg:#f4f6f8;--white:#fff;--gray:#666;
+  --border:#d1d9e4;--text:#1a2340;--green:#1a7a4a;--green-light:#e8f5ee;
+  --red:#a32020;--red-light:#fdf0f0;--amber:#a06400;--amber-light:#fff8ed;
+  --blue-light:#eef5ff;--orange:#c2410c;--orange-light:#fff6ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.breadcrumb{background:var(--navy);padding:10px 30px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.4)}
+.breadcrumb a{color:var(--accent-light);text-decoration:none}.breadcrumb span{margin:0 6px}
+header{background:var(--navy);padding:44px 30px 40px;position:relative;overflow:hidden}
+.hi{max-width:1100px;margin:auto;position:relative;z-index:1}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:rgba(200,146,42,.2);color:var(--accent-light);border:1px solid rgba(200,146,42,.4);padding:4px 12px;border-radius:3px;letter-spacing:2px;margin-bottom:14px}
+header h1{font-size:28px;font-weight:700;color:#fff;margin-bottom:8px}
+header h1 span{color:var(--accent-light)}
+header p{font-size:14px;color:rgba(255,255,255,.68);max-width:680px}
+main{max-width:1100px;margin:0 auto;padding:32px 30px 60px}
+.sl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;margin-top:28px}
+.sl:first-child{margin-top:0}
+.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:14px}
+.card h2{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.card p{font-size:13px;color:var(--gray);line-height:1.7;margin-bottom:10px}
+.card ul{padding-left:18px;font-size:13px;color:var(--gray);line-height:1.8}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.d-block{background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.d-block h4{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.d-block ul{padding-left:16px;font-size:13px;color:var(--gray);line-height:1.75}
+.d-block p{font-size:13px;color:var(--gray);line-height:1.65}
+.iso-pill{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 7px;background:#f0f4fa;color:var(--navy-light);border-radius:3px;margin-right:3px}
+.role-box{background:var(--navy);border-radius:6px;padding:18px 22px;margin-top:14px}
+.role-box p{font-size:14px;color:rgba(255,255,255,.85);line-height:1.7}
+.role-box strong{color:var(--accent-light)}
+.nav-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px;padding-top:16px;border-top:1px solid var(--border)}
+.nav-link{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--navy-light);text-decoration:none;border:1px solid var(--border);background:#fff;border-radius:4px;padding:8px 12px}
+.nav-link:hover{border-color:var(--navy-light)}
+.fn{font-size:11px;color:var(--gray);margin-top:12px}
+.tool-link{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--navy-light);text-decoration:none;border:1px solid var(--border);padding:8px 12px;border-radius:4px;background:#fff;margin-top:10px}
+.tool-link:hover{border-color:var(--navy-light)}
+
+header::after{content:'SoD';position:absolute;bottom:-16px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:90px;font-weight:700;color:rgba(255,255,255,.03);pointer-events:none}
+header h1 span{color:rgba(255,255,255,.55)}
+</style>
+</head>
+<body>
+<div class="breadcrumb">
+  <a href="../../index.html">IAM-RISK-ENGINEERING-TOOLKIT</a><span>/</span>
+  <a href="access-model.html">concepts</a><span>/</span>sod
+</div>
+<header>
+  <div class="hi">
+    <div class="badge">CONCEITOS · RISCO · ISO 5.3</div>
+    <h1>SoD <span style="font-weight:300">Segregation of Duties</span></h1>
+  </div>
+</header>
+<main>
+
+<div class="sl">Função</div>
+<div class="card">
+  <h2>Identificar combinações de acesso que geram risco</h2>
+  <p>SoD não analisa acessos isolados. Analisa combinações de capacidades. Uma role pode ser completamente justificada isoladamente e, combinada com outra, criar um vetor onde uma identidade executa ações que deveriam exigir aprovação de outra pessoa.</p>
+  <div class="detail-grid">
+    <div class="d-block">
+      <h4>Exemplos de conflito</h4>
+      <ul>
+        <li><strong>Global Admin + Privileged Role Admin</strong> — controle total com auto-escalonamento</li>
+        <li><strong>User Admin + Authentication Admin</strong> — cria conta e controla sua autenticação</li>
+        <li><strong>App Admin + Privileged Role Admin</strong> — cria service principals com roles críticas</li>
+      </ul>
+    </div>
+    <div class="d-block">
+      <h4>Princípio fundamental</h4>
+      <p>SoD opera em dois momentos:</p>
+      <p style="margin-top:8px"><strong>Design-time:</strong> define o catálogo de combinações incompatíveis, independente de usuários.</p>
+      <p style="margin-top:6px"><strong>Run-time:</strong> detecta quem possui quais combinações no ambiente real.</p>
+    </div>
+    <div class="d-block">
+      <h4>Risco mitigado</h4>
+      <ul>
+        <li>Fraude interna sem separação de função</li>
+        <li>Auto-escalonamento de privilégio</li>
+        <li>Ciclo fechado sem aprovação externa</li>
+        <li>Comprometimento de conta com escopo amplo</li>
+      </ul>
+    </div>
+    <div class="d-block">
+      <h4>Controle ISO</h4>
+      <p><strong>5.3 — Segregation of Duties</strong><br>Separação de funções conflitantes para reduzir risco de modificação não autorizada, erro ou fraude.</p>
+      <span class="iso-pill">5.3</span>
+    </div>
+  </div>
+  <div class="role-box">
+    <p><strong>Papel no modelo:</strong> SoD é a camada final de análise de risco antes da decisão. O resultado da análise SoD alimenta diretamente o ciclo de recertificação — cada conflito detectado exige uma decisão formal: remover, manter com exceção documentada, ou reestruturar o acesso.</p>
+  </div>
+  <a href="../../tools/sod/sod-model.html" class="tool-link">→ SoD Conflict Analyzer</a>
+  <a href="../../tools/sod/sod-risk-analyzer.html" class="tool-link" style="margin-left:8px">→ SoD Risk Analyzer</a>
+</div>
+
+<div class="nav-row">
+  <a class="nav-link" href="pam.html">← PAM</a>
+  <a class="nav-link" href="abac.html">ABAC →</a>
+  <a class="nav-link" href="pbac.html">PBAC →</a>
+  <a class="nav-link" href="../../tools/sod/sod-model.html">Ferramenta →</a>
+</div>
+<p class="fn">Conteúdo educacional. Baseado em normas públicas ISO/IEC 27001:2022 e documentação Microsoft Entra ID. Autor: Gilberto Gonçalves dos Santos Filho.</p>
+</main>
+</body>
+</html>

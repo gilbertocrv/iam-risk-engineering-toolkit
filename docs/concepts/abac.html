@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABAC | IAM Conceitos</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --navy:#003366;--navy-mid:#004080;--navy-light:#0056b3;--accent:#c8922a;
+  --accent-light:#e8a83a;--bg:#f4f6f8;--white:#fff;--gray:#666;
+  --border:#d1d9e4;--text:#1a2340;--green:#1a7a4a;--green-light:#e8f5ee;
+  --red:#a32020;--red-light:#fdf0f0;--amber:#a06400;--amber-light:#fff8ed;
+  --blue-light:#eef5ff;--orange:#c2410c;--orange-light:#fff6ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.breadcrumb{background:var(--navy);padding:10px 30px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.4)}
+.breadcrumb a{color:var(--accent-light);text-decoration:none}.breadcrumb span{margin:0 6px}
+header{background:var(--navy);padding:44px 30px 40px;position:relative;overflow:hidden}
+.hi{max-width:1100px;margin:auto;position:relative;z-index:1}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:rgba(200,146,42,.2);color:var(--accent-light);border:1px solid rgba(200,146,42,.4);padding:4px 12px;border-radius:3px;letter-spacing:2px;margin-bottom:14px}
+header h1{font-size:28px;font-weight:700;color:#fff;margin-bottom:8px}
+header h1 span{color:var(--accent-light)}
+header p{font-size:14px;color:rgba(255,255,255,.68);max-width:680px}
+main{max-width:1100px;margin:0 auto;padding:32px 30px 60px}
+.sl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;margin-top:28px}
+.sl:first-child{margin-top:0}
+.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:14px}
+.card h2{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.card p{font-size:13px;color:var(--gray);line-height:1.7;margin-bottom:10px}
+.card ul{padding-left:18px;font-size:13px;color:var(--gray);line-height:1.8}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.d-block{background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.d-block h4{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.d-block ul{padding-left:16px;font-size:13px;color:var(--gray);line-height:1.75}
+.d-block p{font-size:13px;color:var(--gray);line-height:1.65}
+.iso-pill{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 7px;background:#f0f4fa;color:var(--navy-light);border-radius:3px;margin-right:3px}
+.role-box{background:var(--navy);border-radius:6px;padding:18px 22px;margin-top:14px}
+.role-box p{font-size:14px;color:rgba(255,255,255,.85);line-height:1.7}
+.role-box strong{color:var(--accent-light)}
+.nav-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px;padding-top:16px;border-top:1px solid var(--border)}
+.nav-link{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--navy-light);text-decoration:none;border:1px solid var(--border);background:#fff;border-radius:4px;padding:8px 12px}
+.nav-link:hover{border-color:var(--navy-light)}
+.fn{font-size:11px;color:var(--gray);margin-top:12px}
+.tool-link{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--navy-light);text-decoration:none;border:1px solid var(--border);padding:8px 12px;border-radius:4px;background:#fff;margin-top:10px}
+.tool-link:hover{border-color:var(--navy-light)}
+
+header::after{content:'ABAC';position:absolute;bottom:-16px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:90px;font-weight:700;color:rgba(255,255,255,.03);pointer-events:none}
+header h1 span{color:rgba(255,255,255,.55)}
+</style>
+</head>
+<body>
+<div class="breadcrumb">
+  <a href="../../index.html">IAM-RISK-ENGINEERING-TOOLKIT</a><span>/</span>
+  <a href="access-model.html">concepts</a><span>/</span>abac
+</div>
+<header>
+  <div class="hi">
+    <div class="badge">CONCEITOS · CONTEXTO · ISO 5.15</div>
+    <h1>ABAC <span style="font-weight:300">Attribute-Based Access Control</span></h1>
+  </div>
+</header>
+<main>
+
+<div class="sl">Função</div>
+<div class="card">
+  <h2>Controlar acesso com base em atributos de contexto</h2>
+  <p>ABAC adiciona condições contextuais à decisão de acesso. Não pergunta apenas "quem é o usuário e qual é sua função" — pergunta também "em que condições esse acesso deve ser permitido". É a lógica por trás do Conditional Access no Microsoft Entra ID.</p>
+  <div class="detail-grid">
+    <div class="d-block">
+      <h4>Atributos típicos</h4>
+      <ul>
+        <li>Localização — país, rede, IP</li>
+        <li>Dispositivo — compliance, tipo, plataforma</li>
+        <li>Horário — janela de acesso permitida</li>
+        <li>Risco de sessão — Identity Protection</li>
+        <li>Método de autenticação — MFA satisfeito?</li>
+      </ul>
+    </div>
+    <div class="d-block">
+      <h4>Aplicação no Entra ID</h4>
+      <ul>
+        <li>Conditional Access Policies</li>
+        <li>Named Locations</li>
+        <li>Device compliance (Intune)</li>
+        <li>Sign-in risk policies (Identity Protection)</li>
+        <li>Authentication strength requirements</li>
+      </ul>
+    </div>
+    <div class="d-block">
+      <h4>Quando usar ABAC</h4>
+      <p>Quando RBAC não é suficiente. RBAC define quem pode acessar. ABAC define <em>em que condições</em> o acesso é permitido. Exemplos:</p>
+      <ul style="margin-top:6px">
+        <li>Acesso somente de dispositivos gerenciados</li>
+        <li>MFA exigido fora da rede corporativa</li>
+        <li>Bloquear acesso de regiões de alto risco</li>
+      </ul>
+    </div>
+    <div class="d-block">
+      <h4>Risco e limitação</h4>
+      <p><strong>Alta complexidade de governança.</strong> Políticas ABAC mal documentadas geram bloqueios inesperados, exceções não rastreadas e dificuldade de auditoria. Cada política precisa de dono, propósito e revisão periódica.</p>
+      <span class="iso-pill">5.15</span>
+    </div>
+  </div>
+  <div class="role-box">
+    <p><strong>Papel no modelo:</strong> ABAC complementa RBAC adicionando contexto. Não substitui a estrutura de função — aplica condições sobre ela. Uma identidade pode ter a role correta e ainda assim ter o acesso negado por ABAC se o contexto não atender às condições da política.</p>
+  </div>
+  <a href="../../tools/abac/conditional-access-analyzer.html" class="tool-link">→ Conditional Access Analyzer</a>
+</div>
+
+<div class="nav-row">
+  <a class="nav-link" href="sod.html">← SoD</a>
+  <a class="nav-link" href="pbac.html">PBAC →</a>
+  <a class="nav-link" href="access-model.html">← Modelo</a>
+</div>
+<p class="fn">Conteúdo educacional. Baseado em normas públicas ISO/IEC 27001:2022 e documentação Microsoft Entra ID. Autor: Gilberto Gonçalves dos Santos Filho.</p>
+</main>
+</body>
+</html>

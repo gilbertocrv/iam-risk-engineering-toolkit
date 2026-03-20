@@ -1,0 +1,7 @@
+UserPrincipalName,LastSignInDateTime,LastSuccessfulSignInDateTime,MFAStatus
+breakglass@contoso.com,2025-12-01T10:00:00Z,2025-12-01T10:00:00Z,disabled
+ana.costa@contoso.com,2025-11-10T10:00:00Z,2025-11-10T10:00:00Z,disabled
+gilberto@contoso.com,2026-03-17T10:00:00Z,2026-03-17T10:00:00Z,enabled
+security@contoso.com,2026-03-15T10:00:00Z,2026-03-15T10:00:00Z,enabled
+suporte@contoso.com,2026-03-10T10:00:00Z,2026-03-10T10:00:00Z,enabled
+svc.intune@contoso.com,2026-03-14T10:00:00Z,2026-03-14T10:00:00Z,disabled

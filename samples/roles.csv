@@ -1,0 +1,11 @@
+RoleName,UserPrincipalName,IsPrivileged,AssignmentType
+Global Administrator,breakglass@contoso.com,true,Direct
+Privileged Role Administrator,breakglass@contoso.com,true,Direct
+User Administrator,ana.costa@contoso.com,true,Direct
+Authentication Administrator,ana.costa@contoso.com,true,Direct
+Application Administrator,gilberto@contoso.com,true,Direct
+Cloud Application Administrator,gilberto@contoso.com,true,Direct
+Security Administrator,security@contoso.com,true,Direct
+Helpdesk Administrator,suporte@contoso.com,false,Direct
+Global Reader,reader@contoso.com,false,Direct
+Intune Administrator,svc.intune@contoso.com,true,Direct

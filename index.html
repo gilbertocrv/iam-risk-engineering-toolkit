@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IAM Risk Engineering Toolkit</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#003366;--navy-mid:#004080;--navy-light:#0056b3;--accent:#c8922a;
+  --accent-light:#e8a83a;--bg:#f4f6f8;--white:#fff;--gray:#666;
+  --border:#d1d9e4;--text:#1a2340;--green:#1a7a4a;--green-light:#e8f5ee;
+  --red:#a32020;--amber:#a06400;--amber-light:#fff8ed;--blue-light:#eef5ff;
+  --orange:#c2410c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+header{background:var(--navy);padding:52px 30px 48px;position:relative;overflow:hidden}
+header::after{content:'RISK';position:absolute;bottom:-20px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:160px;font-weight:700;color:rgba(255,255,255,.03);pointer-events:none}
+.hi{max-width:1100px;margin:auto;position:relative;z-index:1}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:rgba(200,146,42,.2);color:var(--accent-light);border:1px solid rgba(200,146,42,.4);padding:4px 12px;border-radius:3px;letter-spacing:2px;margin-bottom:18px}
+header h1{font-size:34px;font-weight:700;color:#fff;margin-bottom:12px}
+header h1 span{color:var(--accent-light)}
+header p{font-size:14px;color:rgba(255,255,255,.68);max-width:700px;margin-bottom:20px}
+.meta-row{display:flex;gap:10px;flex-wrap:wrap}
+.mp{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 10px;border:1px solid rgba(255,255,255,.14);border-radius:3px;color:rgba(255,255,255,.65)}
+main{max-width:1100px;margin:0 auto;padding:40px 30px 70px}
+.sl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:16px;margin-top:36px}
+.sl:first-child{margin-top:0}
+
+/* Série context */
+.series-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:8px}
+.series-card{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:18px 20px}
+.series-card.active{border-left:3px solid var(--accent)}
+.series-card h3{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:5px}
+.series-card p{font-size:12px;color:var(--gray);line-height:1.6}
+.series-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:3px;margin-bottom:8px;display:inline-block}
+.tag-done{background:var(--green-light);color:var(--green)}
+.tag-active{background:var(--amber-light);color:var(--amber)}
+
+/* Conceitos */
+.concepts-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:8px}
+.concept-chip{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:14px 16px;text-decoration:none;color:inherit;transition:box-shadow .15s;display:block}
+.concept-chip:hover{box-shadow:0 3px 12px rgba(0,51,102,.08)}
+.concept-chip.rbac{border-top:3px solid var(--navy-light)}
+.concept-chip.pam{border-top:3px solid var(--orange)}
+.concept-chip.sod{border-top:3px solid var(--red)}
+.concept-chip.abac{border-top:3px solid var(--green)}
+.concept-chip.pbac{border-top:3px solid var(--amber)}
+.cc-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.cc-name{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.cc-sub{font-size:11px;color:var(--gray);line-height:1.5}
+.cc-iso{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--navy-light);margin-top:6px}
+
+/* Ferramentas */
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:8px}
+.tool-card{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:18px 20px;text-decoration:none;color:inherit;display:block;transition:box-shadow .15s}
+.tool-card:hover{box-shadow:0 3px 12px rgba(0,51,102,.08)}
+.tool-card.rbac{border-left:3px solid var(--navy-light)}
+.tool-card.pam{border-left:3px solid var(--orange)}
+.tool-card.sod{border-left:3px solid var(--red)}
+.tool-card.abac{border-left:3px solid var(--green)}
+.tool-card.pbac{border-left:3px solid var(--amber)}
+.tc-tag{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.tc-name{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:5px}
+.tc-desc{font-size:12px;color:var(--gray);line-height:1.55}
+.iso-pill{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;background:#f0f4fa;color:var(--navy-light);border-radius:3px;margin-top:8px;margin-right:3px;display:inline-block}
+
+/* Docs */
+.docs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:8px}
+.doc-card{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:16px 18px;text-decoration:none;color:inherit;display:block;transition:box-shadow .15s}
+.doc-card:hover{box-shadow:0 3px 12px rgba(0,51,102,.08)}
+.doc-card h4{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:5px}
+.doc-card p{font-size:12px;color:var(--gray);line-height:1.55}
+
+/* Fluxo */
+.flow-wrap{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:8px}
+.flow-steps{display:flex;align-items:stretch;gap:4px;flex-wrap:wrap;margin-top:12px}
+.fs{flex:1;min-width:100px;padding:12px 10px;border:1px solid var(--border);border-radius:6px;text-align:center;background:#fafbfc}
+.fs-n{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--accent);margin-bottom:3px;letter-spacing:1px}
+.fs-t{font-size:11px;font-weight:700;color:var(--navy);margin-bottom:2px}
+.fs-d{font-size:10px;color:var(--gray)}
+.fa{font-size:16px;color:#c8d4e0;display:flex;align-items:center;flex-shrink:0}
+
+/* Footer */
+.footer{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-top:40px}
+.footer-author{font-size:13px;color:var(--gray)}
+.footer-author strong{color:var(--navy);display:block;margin-bottom:4px}
+.footer-links{display:flex;gap:8px;flex-wrap:wrap}
+.footer-link{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--navy-light);text-decoration:none;border:1px solid var(--border);background:#fff;border-radius:4px;padding:8px 12px}
+.footer-link:hover{border-color:var(--navy-light)}
+.footer-note{width:100%;font-size:11px;color:var(--gray);padding-top:14px;border-top:1px solid var(--border)}
+
+@media(max-width:768px){
+  .series-row{grid-template-columns:1fr}
+  .flow-steps{flex-direction:column}.fa{justify-content:center;transform:rotate(90deg)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hi">
+    <div class="badge">RBAC · PAM · SoD · ABAC · PBAC</div>
+    <h1>IAM Risk <span>Engineering Toolkit</span></h1>
+    <p>Ferramentas e documentação para estruturar controle de acesso, classificar privilégio, detectar conflitos de segregação e modelar políticas baseadas em atributos e contexto — ancorado na ISO/IEC 27001:2022 e no Microsoft Entra ID.</p>
+    <div class="meta-row">
+      <span class="mp">ISO/IEC 27001:2022</span>
+      <span class="mp">SC-300</span>
+      <span class="mp">Microsoft Entra ID</span>
+      <span class="mp">Processamento local</span>
+      <span class="mp">Conteúdo educacional</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Contexto de série -->
+  <div class="sl">Contexto — série de projetos</div>
+  <div class="series-row">
+    <div class="series-card">
+      <span class="series-tag tag-done">✓ iam-operational-cycle-toolkit</span>
+      <h3>Ciclo operacional</h3>
+      <p>Auditoria, recertificação, registro de evidência e saída auditável. Valida <em>se o acesso está sendo controlado</em>.</p>
+    </div>
+    <div class="series-card active">
+      <span class="series-tag tag-active">→ iam-risk-engineering-toolkit</span>
+      <h3>Engenharia de risco</h3>
+      <p>RBAC, PAM, SoD, ABAC e PBAC. Define <em>a estrutura sobre a qual o ciclo operacional opera</em>.</p>
+    </div>
+  </div>
+
+  <!-- Conceitos -->
+  <div class="sl">Conceitos — modelo de acesso</div>
+  <div class="concepts-row">
+    <a href="docs/concepts/access-model.html" class="concept-chip" style="border-top:3px solid var(--accent)">
+      <div class="cc-label">VISÃO GERAL</div>
+      <div class="cc-name">Access Model</div>
+      <div class="cc-sub">O modelo completo e como os conceitos se relacionam</div>
+    </a>
+    <a href="docs/concepts/rbac.html" class="concept-chip rbac">
+      <div class="cc-label">BASE</div>
+      <div class="cc-name">RBAC</div>
+      <div class="cc-sub">Acesso por função</div>
+      <div class="cc-iso">5.15 · 8.3</div>
+    </a>
+    <a href="docs/concepts/pam.html" class="concept-chip pam">
+      <div class="cc-label">PRIVILÉGIO</div>
+      <div class="cc-name">PAM</div>
+      <div class="cc-sub">Controle de impacto</div>
+      <div class="cc-iso">8.2</div>
+    </a>
+    <a href="docs/concepts/sod.html" class="concept-chip sod">
+      <div class="cc-label">RISCO</div>
+      <div class="cc-name">SoD</div>
+      <div class="cc-sub">Combinações perigosas</div>
+      <div class="cc-iso">5.3</div>
+    </a>
+    <a href="docs/concepts/abac.html" class="concept-chip abac">
+      <div class="cc-label">CONTEXTO</div>
+      <div class="cc-name">ABAC</div>
+      <div class="cc-sub">Acesso por atributo</div>
+      <div class="cc-iso">5.15</div>
+    </a>
+    <a href="docs/concepts/pbac.html" class="concept-chip pbac">
+      <div class="cc-label">POLÍTICA</div>
+      <div class="cc-name">PBAC</div>
+      <div class="cc-sub">Decisão centralizada</div>
+      <div class="cc-iso">5.15</div>
+    </a>
+  </div>
+
+  <!-- Ferramentas -->
+  <div class="sl">Ferramentas</div>
+  <div class="tools-grid">
+    <a href="tools/rbac/role-mapper.html" class="tool-card rbac">
+      <div class="tc-tag">RBAC</div>
+      <div class="tc-name">RBAC Role Mapper</div>
+      <div class="tc-desc">Classifica roles e grupos por tipo. Detecta roles vazias, identidades com múltiplas atribuições e acumulação de acesso.</div>
+      <span class="iso-pill">5.15</span><span class="iso-pill">8.3</span>
+    </a>
+    <a href="tools/pam/pam-inventory.html" class="tool-card pam">
+      <div class="tc-tag">PAM</div>
+      <div class="tc-name">PAM Inventory</div>
+      <div class="tc-desc">Cataloga contas privilegiadas em Tiers 0–2. Identifica ausência de MFA, inatividade e classifica risco por conta.</div>
+      <span class="iso-pill">8.2</span>
+    </a>
+    <a href="tools/sod/index.html" class="tool-card sod">
+      <div class="tc-tag">SoD</div>
+      <div class="tc-name">SoD Tools</div>
+      <div class="tc-desc">Conflict Analyzer (10 combinações documentadas) + Role Explosion Analyzer (órfãos, acumulação, grupos atípicos).</div>
+      <span class="iso-pill">5.3</span><span class="iso-pill">5.18</span>
+    </a>
+    <a href="tools/abac/conditional-access-analyzer.html" class="tool-card abac">
+      <div class="tc-tag">ABAC</div>
+      <div class="tc-name">Conditional Access Analyzer</div>
+      <div class="tc-desc">Inventaria políticas de Conditional Access. Detecta lacunas, políticas sem ação e ausência de atributos ABAC. Suporta import JSON do Graph API.</div>
+      <span class="iso-pill">5.15</span>
+    </a>
+    <a href="tools/pbac/policy-simulator.html" class="tool-card pbac">
+      <div class="tc-tag">PBAC</div>
+      <div class="tc-name">Policy Simulator</div>
+      <div class="tc-desc">Define políticas com condições explícitas (role, localização, dispositivo, MFA, risco) e simula decisões Permit / Deny / Conditional com log exportável.</div>
+      <span class="iso-pill">5.15</span>
+    </a>
+  </div>
+
+  <!-- Docs -->
+  <div class="sl">Documentação</div>
+  <div class="docs-grid">
+    <a href="docs/architecture.html" class="doc-card">
+      <h4>Arquitetura</h4>
+      <p>Visão lógica das camadas, mapa de ferramentas, fluxo estrutural e integração com o ciclo operacional.</p>
+    </a>
+    <a href="docs/concepts/access-model.html" class="doc-card">
+      <h4>Access Model</h4>
+      <p>Como RBAC, PAM, SoD, ABAC e PBAC se relacionam. Mapeamento ISO e fluxo dentro do ciclo IAM.</p>
+    </a>
+  </div>
+
+  <!-- Fluxo -->
+  <div class="sl">Fluxo — do modelo ao controle</div>
+  <div class="flow-wrap">
+    <p style="font-size:13px;color:var(--gray)">Cada camada depende da anterior. RBAC sem PAM deixa privilégios descontrolados. PAM sem SoD não detecta combinações de risco. Os artefatos gerados alimentam o ciclo operacional.</p>
+    <div class="flow-steps">
+      <div class="fs"><div class="fs-n">RBAC</div><div class="fs-t">Estrutura</div><div class="fs-d">Por função</div></div>
+      <div class="fa">→</div>
+      <div class="fs"><div class="fs-n">PAM</div><div class="fs-t">Privilégio</div><div class="fs-d">Por tier</div></div>
+      <div class="fa">→</div>
+      <div class="fs"><div class="fs-n">ABAC</div><div class="fs-t">Contexto</div><div class="fs-d">Por atributo</div></div>
+      <div class="fa">→</div>
+      <div class="fs"><div class="fs-n">SoD</div><div class="fs-t">Conflito</div><div class="fs-d">Por combinação</div></div>
+      <div class="fa">→</div>
+      <div class="fs"><div class="fs-n">PBAC</div><div class="fs-t">Política</div><div class="fs-d">Decisão central</div></div>
+      <div class="fa">→</div>
+      <div class="fs" style="border-top:2px solid var(--green)"><div class="fs-n">CICLO OPS</div><div class="fs-t">Revisão</div><div class="fs-d">Evidência auditável</div></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-author">
+      <strong>Gilberto Gonçalves dos Santos Filho</strong>
+      Analista de Governança de Identidades — IAM · PAM · GRC
+    </div>
+    <div class="footer-links">
+      <a class="footer-link" href="https://linkedin.com/in/gilberto-filho-4430a3184">LinkedIn</a>
+      <a class="footer-link" href="https://github.com/gilbertocrv">GitHub</a>
+      <a class="footer-link" href="https://github.com/gilbertocrv/iam-operational-cycle-toolkit">← Ciclo Operacional</a>
+    </div>
+    <p class="footer-note">Conteúdo educacional independente baseado em normas públicas ISO/IEC 27001:2022 e documentação Microsoft Entra ID / SC-300. Todo o processamento ocorre localmente no navegador — nenhum dado é enviado a servidores externos.</p>
+  </div>
+
+</main>
+</body>
+</html>

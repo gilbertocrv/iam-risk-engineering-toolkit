@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBAC | IAM Conceitos</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --navy:#003366;--navy-mid:#004080;--navy-light:#0056b3;--accent:#c8922a;
+  --accent-light:#e8a83a;--bg:#f4f6f8;--white:#fff;--gray:#666;
+  --border:#d1d9e4;--text:#1a2340;--green:#1a7a4a;--green-light:#e8f5ee;
+  --red:#a32020;--red-light:#fdf0f0;--amber:#a06400;--amber-light:#fff8ed;
+  --blue-light:#eef5ff;--orange:#c2410c;--orange-light:#fff6ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.breadcrumb{background:var(--navy);padding:10px 30px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.4)}
+.breadcrumb a{color:var(--accent-light);text-decoration:none}.breadcrumb span{margin:0 6px}
+header{background:var(--navy);padding:44px 30px 40px;position:relative;overflow:hidden}
+.hi{max-width:1100px;margin:auto;position:relative;z-index:1}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:rgba(200,146,42,.2);color:var(--accent-light);border:1px solid rgba(200,146,42,.4);padding:4px 12px;border-radius:3px;letter-spacing:2px;margin-bottom:14px}
+header h1{font-size:28px;font-weight:700;color:#fff;margin-bottom:8px}
+header h1 span{color:var(--accent-light)}
+header p{font-size:14px;color:rgba(255,255,255,.68);max-width:680px}
+main{max-width:1100px;margin:0 auto;padding:32px 30px 60px}
+.sl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;margin-top:28px}
+.sl:first-child{margin-top:0}
+.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:14px}
+.card h2{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.card p{font-size:13px;color:var(--gray);line-height:1.7;margin-bottom:10px}
+.card ul{padding-left:18px;font-size:13px;color:var(--gray);line-height:1.8}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.d-block{background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.d-block h4{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.d-block ul{padding-left:16px;font-size:13px;color:var(--gray);line-height:1.75}
+.d-block p{font-size:13px;color:var(--gray);line-height:1.65}
+.iso-pill{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 7px;background:#f0f4fa;color:var(--navy-light);border-radius:3px;margin-right:3px}
+.role-box{background:var(--navy);border-radius:6px;padding:18px 22px;margin-top:14px}
+.role-box p{font-size:14px;color:rgba(255,255,255,.85);line-height:1.7}
+.role-box strong{color:var(--accent-light)}
+.nav-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px;padding-top:16px;border-top:1px solid var(--border)}
+.nav-link{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--navy-light);text-decoration:none;border:1px solid var(--border);background:#fff;border-radius:4px;padding:8px 12px}
+.nav-link:hover{border-color:var(--navy-light)}
+.fn{font-size:11px;color:var(--gray);margin-top:12px}
+.tool-link{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--navy-light);text-decoration:none;border:1px solid var(--border);padding:8px 12px;border-radius:4px;background:#fff;margin-top:10px}
+.tool-link:hover{border-color:var(--navy-light)}
+
+header::after{content:'RBAC';position:absolute;bottom:-16px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:90px;font-weight:700;color:rgba(255,255,255,.03);pointer-events:none}
+header h1 span{color:rgba(255,255,255,.55)}
+</style>
+</head>
+<body>
+<div class="breadcrumb">
+  <a href="../../index.html">IAM-RISK-ENGINEERING-TOOLKIT</a><span>/</span>
+  <a href="access-model.html">concepts</a><span>/</span>rbac
+</div>
+<header>
+  <div class="hi">
+    <div class="badge">CONCEITOS · BASE · ISO 5.15 · 8.3</div>
+    <h1>RBAC <span style="font-weight:300">Role-Based Access Control</span></h1>
+  </div>
+</header>
+<main>
+
+<div class="sl">Função</div>
+<div class="card">
+  <h2>Organizar acesso por função, não por usuário</h2>
+  <p>RBAC define que o acesso deve ser concedido ao papel, não ao indivíduo. No Microsoft Entra ID, isso se traduz em Directory Roles para funções administrativas e Security Groups para funções de negócio.</p>
+  <div class="detail-grid">
+    <div class="d-block">
+      <h4>Problema que resolve</h4>
+      <ul>
+        <li>Permission creep — acúmulo gradual de acesso</li>
+        <li>Concessão direta por usuário sem estrutura</li>
+        <li>Dificuldade de revisão e auditoria</li>
+        <li>Acesso mantido após mudança de função</li>
+      </ul>
+    </div>
+    <div class="d-block">
+      <h4>Aplicação no Entra ID</h4>
+      <ul>
+        <li>Directory Roles — funções administrativas nativas</li>
+        <li>Security Groups — funções de negócio</li>
+        <li>Nomear por função: Finance-Admins, não Ana-Acessos</li>
+        <li>Atribuição via PIM para roles privilegiadas</li>
+      </ul>
+    </div>
+    <div class="d-block">
+      <h4>Controles ISO</h4>
+      <p><strong>5.15 — Access Control</strong><br>Define a política e estrutura de acesso baseada em necessidade e função.</p>
+      <p style="margin-top:8px"><strong>8.3 — Information Access Restriction</strong><br>Restrição de acesso a informações conforme política de controle.</p>
+      <span class="iso-pill">5.15</span><span class="iso-pill">8.3</span>
+    </div>
+  </div>
+  <div class="role-box">
+    <p><strong>Papel no modelo:</strong> RBAC é a base. Sem ele, não existe estrutura para análise de risco. SoD não consegue detectar combinações se não há semântica de função definida. PAM não consegue classificar impacto se todo acesso parece igual.</p>
+  </div>
+  <a href="../../tools/rbac/role-mapper.html" class="tool-link">→ RBAC Role Mapper</a>
+</div>
+
+<div class="nav-row">
+  <a class="nav-link" href="access-model.html">← Modelo</a>
+  <a class="nav-link" href="pam.html">PAM →</a>
+  <a class="nav-link" href="sod.html">SoD →</a>
+  <a class="nav-link" href="abac.html">ABAC →</a>
+</div>
+<p class="fn">Conteúdo educacional. Baseado em normas públicas ISO/IEC 27001:2022 e documentação Microsoft Entra ID. Autor: Gilberto Gonçalves dos Santos Filho.</p>
+</main>
+</body>
+</html>

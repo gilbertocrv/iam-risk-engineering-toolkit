@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conditional Access Analyzer | ABAC · IAM Série 4</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#003366;--navy-mid:#004080;--navy-light:#0056b3;--accent:#c8922a;
+  --accent-light:#e8a83a;--bg:#f4f6f8;--white:#fff;--gray:#666;
+  --border:#d1d9e4;--text:#1a2340;--green:#1a7a4a;--green-light:#e8f5ee;
+  --red:#a32020;--red-light:#fdf0f0;--amber:#a06400;--amber-light:#fff8ed;
+  --blue-light:#eef5ff;--orange:#c2410c;--orange-light:#fff6ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.breadcrumb{background:var(--navy);padding:10px 30px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.4)}
+.breadcrumb a{color:var(--accent-light);text-decoration:none}.breadcrumb span{margin:0 6px}
+header{background:var(--navy);padding:44px 30px 40px;position:relative;overflow:hidden}
+header::after{content:'ABAC';position:absolute;bottom:-18px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:100px;font-weight:700;color:rgba(255,255,255,.03);pointer-events:none}
+.hi{max-width:1180px;margin:auto;position:relative;z-index:1}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:rgba(200,146,42,.2);color:var(--accent-light);border:1px solid rgba(200,146,42,.4);padding:4px 12px;border-radius:3px;letter-spacing:2px;margin-bottom:16px}
+header h1{font-size:28px;font-weight:700;color:#fff;margin-bottom:10px}
+header h1 span{color:var(--accent-light)}
+header p{font-size:14px;color:rgba(255,255,255,.68);max-width:700px}
+main{max-width:1180px;margin:0 auto;padding:28px 22px 60px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:18px}
+.sl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-6{grid-column:span 6}.span-4{grid-column:span 4}
+@media(max-width:920px){.span-8,.span-6,.span-4{grid-column:span 12}}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label{display:block;font-size:12px;color:var(--gray);margin-bottom:5px}
+input[type=text],input[type=file],select,textarea{width:100%;border:1px solid var(--border);border-radius:6px;padding:10px 12px;font:inherit;color:var(--text);background:#fff}
+textarea{min-height:90px;resize:vertical}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{border:none;border-radius:6px;padding:11px 14px;cursor:pointer;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.btn-primary{background:var(--navy);color:#fff}.btn-outline{background:#fff;border:1px solid var(--navy);color:var(--navy)}.btn-success{background:var(--green);color:#fff}.btn-danger{background:var(--red);color:#fff}
+.status{margin-top:14px;padding:12px 14px;border-radius:6px;border:1px solid var(--border);background:#fafbfc;font-size:12px;color:var(--gray)}
+.info{background:var(--blue-light);color:var(--navy-mid)}.ok{background:var(--green-light);color:var(--green)}.warn{background:var(--amber-light);color:var(--amber)}.err{background:var(--red-light);color:var(--red)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:4px}
+.kpi{border:1px solid var(--border);border-radius:6px;background:#fff;padding:14px}
+.kpi .v{font-size:24px;font-weight:700;color:var(--navy)}.kpi .l{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;font-family:'IBM Plex Mono',monospace}.kpi .s{font-size:12px;color:var(--gray);margin-top:3px}
+.kpi.warn-k .v{color:var(--amber)}.kpi.red-k .v{color:var(--red)}.kpi.green-k .v{color:var(--green)}
+.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:6px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{border-bottom:1px solid var(--border);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f8fafc;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--gray)}
+tr:nth-child(even) td{background:#fcfdff}
+.pill{display:inline-block;padding:3px 8px;border-radius:999px;font:600 10px 'IBM Plex Mono',monospace}
+.p-critical{background:var(--red-light);color:var(--red)}.p-high{background:var(--orange-light);color:var(--orange)}.p-medium{background:var(--amber-light);color:var(--amber)}.p-low{background:var(--green-light);color:var(--green)}.p-info{background:var(--blue-light);color:var(--navy-light)}
+.iso-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;background:#f0f4fa;color:var(--navy-light);border-radius:3px}
+.note{font-size:12px;color:var(--gray)}
+
+/* Form de política manual */
+.policy-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.policy-tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 7px;background:#f0f4fa;color:var(--navy-light);border-radius:3px;margin:2px}
+.policy-card{background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:10px}
+.policy-card h4{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.remove-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--red);cursor:pointer;border:none;background:none;padding:0}
+</style>
+</head>
+<body>
+<div class="breadcrumb">
+  <a href="../../index.html">IAM-RISK-ENGINEERING-TOOLKIT</a><span>/</span>
+  <a href="../../docs/concepts/abac.html">ABAC</a><span>/</span>Conditional Access Analyzer
+</div>
+<header>
+  <div class="hi">
+    <div class="badge">SÉRIE 4 · ABAC · ISO 5.15 · SC-300</div>
+    <h1>Conditional Access <span>Analyzer</span></h1>
+    <p>Inventaria e analisa políticas de Conditional Access do Microsoft Entra ID. Detecta lacunas de cobertura, políticas sem ação definida, ausência de MFA em grupos críticos e documenta atributos ABAC utilizados.</p>
+  </div>
+</header>
+<main>
+<div class="grid">
+
+  <!-- Referência ABAC -->
+  <section class="card span-12">
+    <div class="sl">Referência — atributos ABAC no Entra ID</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+      <div style="background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px">IDENTIDADE</div>
+        <div style="font-size:12px;color:var(--gray);line-height:1.7">Usuário · Grupo · Role de diretório · Conta de serviço</div>
+      </div>
+      <div style="background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px">LOCALIZAÇÃO</div>
+        <div style="font-size:12px;color:var(--gray);line-height:1.7">Named Location · País · IP · Rede corporativa</div>
+      </div>
+      <div style="background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px">DISPOSITIVO</div>
+        <div style="font-size:12px;color:var(--gray);line-height:1.7">Compliance (Intune) · Hybrid joined · Tipo · Plataforma</div>
+      </div>
+      <div style="background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px">RISCO</div>
+        <div style="font-size:12px;color:var(--gray);line-height:1.7">Sign-in risk · User risk · Session risk (Identity Protection)</div>
+      </div>
+      <div style="background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px">AUTENTICAÇÃO</div>
+        <div style="font-size:12px;color:var(--gray);line-height:1.7">MFA satisfeito · Authentication strength · SSPR</div>
+      </div>
+      <div style="background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px">APLICAÇÃO</div>
+        <div style="font-size:12px;color:var(--gray);line-height:1.7">App específica · Todas as apps · Portais de admin</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Import JSON do Graph API -->
+  <section class="card span-12">
+    <div class="sl">1b. Importar export JSON do Graph API (opcional)</div>
+    <p class="note" style="margin-bottom:12px">Se preferir importar diretamente do Microsoft Graph, exporte as políticas via PowerShell e carregue o JSON aqui. As políticas serão parseadas automaticamente.</p>
+    <div style="background:#1e1e1e;color:#d4d4d4;border-radius:6px;padding:14px;font:12px 'IBM Plex Mono',monospace;white-space:pre;margin-bottom:14px">Connect-MgGraph -Scopes "Policy.Read.All"
+$policies = Get-MgIdentityConditionalAccessPolicy
+$policies | ConvertTo-Json -Depth 10 | Out-File "ca-policies.json"</div>
+    <div class="meta-grid">
+      <div><label>Arquivo JSON do Graph API</label><input type="file" id="graphFile" accept=".json"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="importFromGraph()">Importar JSON do Graph</button>
+    </div>
+    <div id="graphStatus" class="status info" style="margin-top:10px">Carregue o JSON exportado via Get-MgIdentityConditionalAccessPolicy.</div>
+  </section>
+
+  <!-- Entrada manual -->
+  <section class="card span-12">
+    <div class="sl">1. Cadastro de políticas</div>
+    <p class="note" style="margin-bottom:14px">Registre as políticas de Conditional Access do seu tenant. Cada política deve ter nome, estado, ação, escopo e atributos ABAC utilizados.</p>
+    <div class="policy-form-grid">
+      <div><label>Nome da política</label><input type="text" id="pName" placeholder="CA-001 — MFA para todos os usuários"></div>
+      <div><label>Estado</label>
+        <select id="pState">
+          <option value="Habilitada">Habilitada</option>
+          <option value="Somente relatório">Somente relatório</option>
+          <option value="Desabilitada">Desabilitada</option>
+        </select>
+      </div>
+      <div><label>Ação</label>
+        <select id="pAction">
+          <option value="Exigir MFA">Exigir MFA</option>
+          <option value="Bloquear acesso">Bloquear acesso</option>
+          <option value="Exigir dispositivo gerenciado">Exigir dispositivo gerenciado</option>
+          <option value="Exigir dispositivo compliant">Exigir dispositivo compliant</option>
+          <option value="Exigir MFA + dispositivo">Exigir MFA + dispositivo</option>
+          <option value="Somente relatório">Somente relatório (sem ação)</option>
+          <option value="Outra">Outra</option>
+        </select>
+      </div>
+      <div><label>Escopo — usuários</label>
+        <select id="pScope">
+          <option value="Todos os usuários">Todos os usuários</option>
+          <option value="Admins privilegiados">Admins privilegiados</option>
+          <option value="Grupo específico">Grupo específico</option>
+          <option value="Convidados (Guest)">Convidados (Guest)</option>
+          <option value="Workload identities">Workload identities</option>
+        </select>
+      </div>
+      <div><label>Atributo ABAC principal</label>
+        <select id="pAbac">
+          <option value="Localização">Localização</option>
+          <option value="Dispositivo compliance">Dispositivo compliance</option>
+          <option value="Risco de sessão">Risco de sessão</option>
+          <option value="Risco de usuário">Risco de usuário</option>
+          <option value="Autenticação">Autenticação (MFA/strength)</option>
+          <option value="Aplicação">Aplicação específica</option>
+          <option value="Nenhum">Nenhum atributo contextual</option>
+        </select>
+      </div>
+      <div><label>Observação</label><input type="text" id="pNote" placeholder="Dono, propósito, última revisão..."></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="addPolicy()">Adicionar política</button>
+      <button class="btn btn-outline" onclick="loadExample()">Carregar exemplo</button>
+      <button class="btn btn-danger" onclick="resetAll()">Limpar</button>
+    </div>
+    <div id="statusTop" class="status info">Cadastre as políticas de Conditional Access do tenant ou carregue o cenário exemplo.</div>
+  </section>
+
+  <!-- KPIs -->
+  <section class="card span-12">
+    <div class="sl">2. KPIs do inventário ABAC</div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="v" id="kTotal">0</div><div class="l">Políticas</div><div class="s">cadastradas</div></div>
+      <div class="kpi green-k"><div class="v" id="kEnabled">0</div><div class="l">Habilitadas</div><div class="s">ativas</div></div>
+      <div class="kpi warn-k"><div class="v" id="kReport">0</div><div class="l">Relatório</div><div class="s">sem ação real</div></div>
+      <div class="kpi red-k"><div class="v" id="kDisabled">0</div><div class="l">Desabilitadas</div><div class="s">sem efeito</div></div>
+      <div class="kpi warn-k"><div class="v" id="kNoAbac">0</div><div class="l">Sem ABAC</div><div class="s">sem atributo contextual</div></div>
+      <div class="kpi"><div class="v" id="kMfaCoverage">0</div><div class="l">MFA</div><div class="s">políticas com MFA</div></div>
+    </div>
+  </section>
+
+  <!-- Tabela -->
+  <section class="card span-8">
+    <div class="sl">3. Inventário de políticas</div>
+    <div class="table-wrap">
+      <table id="policiesTable">
+        <thead><tr><th>#</th><th>Nome</th><th>Estado</th><th>Ação</th><th>Escopo</th><th>Atributo ABAC</th><th>Observação</th><th>Risco</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Achados -->
+  <section class="card span-4">
+    <div class="sl">4. Achados de governança</div>
+    <div id="findingsList"><p class="note">Nenhuma política cadastrada.</p></div>
+  </section>
+
+  <!-- Exportação -->
+  <section class="card span-12">
+    <div class="sl">5. Exportação</div>
+    <div class="btn-row">
+      <button class="btn btn-success" onclick="exportCsv()">Baixar inventário CSV</button>
+      <button class="btn btn-outline" onclick="exportJson()">Baixar JSON</button>
+    </div>
+    <p class="note" style="margin-top:10px">Conteúdo educacional. Baseado em documentação pública Microsoft Entra ID / SC-300. A ferramenta opera localmente — nenhum dado é enviado a servidores externos.</p>
+  </section>
+
+</div>
+</main>
+
+<script>
+const state = { policies: [] };
+
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function setStatus(id, msg, cls){ const el=document.getElementById(id); el.className='status '+cls; el.textContent=msg; }
+function toCsv(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n') }
+function download(name, content, type){
+  const blob=new Blob([content],{type}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+}
+
+function assessRisk(p){
+  if(p.state === 'Desabilitada') return {label:'Desabilitada', cls:'p-critical', note:'Política sem efeito — avaliar se deve ser removida ou reabilitada.'};
+  if(p.state === 'Somente relatório') return {label:'Sem ação', cls:'p-high', note:'Política em modo relatório — não aplica controle real.'};
+  if(p.abac === 'Nenhum') return {label:'Sem contexto', cls:'p-medium', note:'Política sem atributo ABAC — aplicada sem condição contextual.'};
+  if(p.action === 'Somente relatório (sem ação)') return {label:'Sem ação', cls:'p-high', note:'Ação configurada como somente relatório.'};
+  return {label:'Ok', cls:'p-low', note:''};
+}
+
+
+function importFromGraph(){
+  const file = document.getElementById('graphFile').files[0];
+  if(!file){
+    document.getElementById('graphStatus').className='status warn';
+    document.getElementById('graphStatus').textContent='Selecione um arquivo JSON antes de importar.';
+    return;
+  }
+  file.text().then(text=>{
+    let parsed;
+    try{ parsed = JSON.parse(text); }
+    catch(e){
+      document.getElementById('graphStatus').className='status err';
+      document.getElementById('graphStatus').textContent='Arquivo JSON inválido: ' + e.message;
+      return;
+    }
+
+    // Suporta tanto array direto quanto objeto com propriedade value (Graph API format)
+    const policies = Array.isArray(parsed) ? parsed : (parsed.value || []);
+    if(!policies.length){
+      document.getElementById('graphStatus').className='status warn';
+      document.getElementById('graphStatus').textContent='Nenhuma política encontrada no JSON.';
+      return;
+    }
+
+    let imported = 0;
+    policies.forEach(p=>{
+      const name = p.displayName || p.id || 'Política sem nome';
+      // Estado
+      const stateMap = {enabled:'Habilitada', enabledForReportingButNotEnforced:'Somente relatório', disabled:'Desabilitada'};
+      const state = stateMap[p.state] || 'Desabilitada';
+      // Ação — inferir do grantControls
+      let action = 'Outra';
+      const gc = p.grantControls;
+      if(gc){
+        const ops = gc.builtInControls || [];
+        const hasBlock = gc.operator === 'Block' || (p.grantControls && !gc.builtInControls);
+        if(p.grantControls?.operator === 'Block') action = 'Bloquear acesso';
+        else if(ops.includes('mfa') && ops.includes('compliantDevice')) action = 'Exigir MFA + dispositivo';
+        else if(ops.includes('mfa')) action = 'Exigir MFA';
+        else if(ops.includes('compliantDevice')) action = 'Exigir dispositivo compliant';
+        else if(ops.includes('domainJoinedDevice')) action = 'Exigir dispositivo gerenciado';
+      }
+      if(state === 'Somente relatório') action = 'Somente relatório (sem ação)';
+
+      // Escopo — inferir de users/groups/roles
+      let scope = 'Grupo específico';
+      const users = p.conditions?.users;
+      if(users){
+        if(users.includeUsers?.includes('All')) scope = 'Todos os usuários';
+        else if(users.includeUsers?.includes('GuestsOrExternalUsers') || users.includeGuestsOrExternalUsers) scope = 'Convidados (Guest)';
+        else if(users.includeRoles?.length) scope = 'Admins privilegiados';
+      }
+
+      // Atributos ABAC — inferir das condições
+      let abac = 'Nenhum';
+      const cond = p.conditions || {};
+      if(cond.signInRiskLevels?.length || cond.userRiskLevels?.length) abac = 'Risco de sessão';
+      else if(cond.locations?.includeLocations?.length || cond.locations?.excludeLocations?.length) abac = 'Localização';
+      else if(cond.devices) abac = 'Dispositivo compliance';
+      else if(cond.applications?.includeApplications?.length) abac = 'Aplicação';
+      else if(action.includes('MFA')) abac = 'Autenticação';
+
+      state.policies.push({
+        id: state.policies.length + 1,
+        name, state, action, scope, abac,
+        note: `Importado do Graph — ID: ${p.id || 'n/a'}`
+      });
+      imported++;
+    });
+
+    render();
+    document.getElementById('graphStatus').className='status ok';
+    document.getElementById('graphStatus').textContent=`${imported} política(s) importadas do JSON do Graph API.`;
+    setStatus('statusTop',`Total após importação: ${state.policies.length} política(s).`,'ok');
+  });
+}
+
+function addPolicy(){
+  const name = document.getElementById('pName').value.trim();
+  if(!name){ setStatus('statusTop','Informe o nome da política.','warn'); return; }
+  const p = {
+    id: state.policies.length + 1,
+    name, state: document.getElementById('pState').value,
+    action: document.getElementById('pAction').value,
+    scope: document.getElementById('pScope').value,
+    abac: document.getElementById('pAbac').value,
+    note: document.getElementById('pNote').value.trim()
+  };
+  state.policies.push(p);
+  ['pName','pNote'].forEach(id=>document.getElementById(id).value='');
+  render();
+  setStatus('statusTop',`Política adicionada. Total: ${state.policies.length}.`,'ok');
+}
+
+function loadExample(){
+  state.policies = [
+    {id:1, name:'CA-001 — MFA para todos os usuários', state:'Habilitada', action:'Exigir MFA', scope:'Todos os usuários', abac:'Autenticação', note:'Política base — revisão semestral'},
+    {id:2, name:'CA-002 — Bloquear países de alto risco', state:'Habilitada', action:'Bloquear acesso', scope:'Todos os usuários', abac:'Localização', note:'Named Location: países bloqueados'},
+    {id:3, name:'CA-003 — Dispositivo gerenciado para apps críticas', state:'Habilitada', action:'Exigir dispositivo compliant', scope:'Todos os usuários', abac:'Dispositivo compliance', note:'Escopo: SharePoint, Exchange'},
+    {id:4, name:'CA-004 — MFA para admins privilegiados', state:'Habilitada', action:'Exigir MFA + dispositivo', scope:'Admins privilegiados', abac:'Autenticação', note:'Tier 0 e Tier 1'},
+    {id:5, name:'CA-005 — Risco de sessão alto', state:'Habilitada', action:'Exigir MFA', scope:'Todos os usuários', abac:'Risco de sessão', note:'Identity Protection — risco alto'},
+    {id:6, name:'CA-006 — Convidados somente apps permitidas', state:'Habilitada', action:'Bloquear acesso', scope:'Convidados (Guest)', abac:'Aplicação', note:'Bloqueia acesso a portais de admin'},
+    {id:7, name:'CA-007 — Pilot MFA para workloads', state:'Somente relatório', action:'Exigir MFA', scope:'Workload identities', abac:'Autenticação', note:'Em avaliação — não aplicado ainda'},
+    {id:8, name:'CA-008 — Política legada', state:'Desabilitada', action:'Outra', scope:'Grupo específico', abac:'Nenhum', note:'Desabilitada há 6 meses — candidata a remoção'},
+  ];
+  render();
+  setStatus('statusTop','Cenário exemplo carregado.','info');
+}
+
+function render(){
+  const ps = state.policies;
+  document.getElementById('kTotal').textContent = ps.length;
+  document.getElementById('kEnabled').textContent = ps.filter(p=>p.state==='Habilitada').length;
+  document.getElementById('kReport').textContent = ps.filter(p=>p.state==='Somente relatório').length;
+  document.getElementById('kDisabled').textContent = ps.filter(p=>p.state==='Desabilitada').length;
+  document.getElementById('kNoAbac').textContent = ps.filter(p=>p.abac==='Nenhum').length;
+  document.getElementById('kMfaCoverage').textContent = ps.filter(p=>p.action.toLowerCase().includes('mfa')).length;
+
+  const tbody = document.querySelector('#policiesTable tbody');
+  tbody.innerHTML = '';
+  if(!ps.length){
+    tbody.innerHTML='<tr><td colspan="8" style="color:var(--gray);text-align:center">Nenhuma política cadastrada</td></tr>';
+  } else {
+    ps.forEach(p=>{
+      const risk = assessRisk(p);
+      const stateColor = {Habilitada:'color:var(--green)', 'Somente relatório':'color:var(--amber)', Desabilitada:'color:var(--red)'}[p.state]||'';
+      const tr = document.createElement('tr');
+      tr.innerHTML=`
+        <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray)">${p.id}</td>
+        <td style="font-size:12px;font-weight:600">${esc(p.name)}</td>
+        <td style="font-size:12px;${stateColor};font-weight:600">${esc(p.state)}</td>
+        <td style="font-size:12px">${esc(p.action)}</td>
+        <td style="font-size:12px">${esc(p.scope)}</td>
+        <td><span class="iso-tag">${esc(p.abac)}</span></td>
+        <td style="font-size:12px;color:var(--gray)">${esc(p.note)}</td>
+        <td><span class="pill ${risk.cls}">${risk.label}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Achados
+  const findings = ps.filter(p=>assessRisk(p).cls!=='p-low');
+  const el = document.getElementById('findingsList');
+  if(!findings.length){
+    el.innerHTML = '<p class="note" style="color:var(--green)">✓ Nenhum achado de governança identificado.</p>';
+    return;
+  }
+
+  const sevOrder = {'p-critical':0,'p-high':1,'p-medium':2};
+  findings.sort((a,b)=>sevOrder[assessRisk(a).cls]-sevOrder[assessRisk(b).cls]);
+
+  el.innerHTML = findings.map(p=>{
+    const risk = assessRisk(p);
+    const borderColor = {'p-critical':'var(--red)','p-high':'var(--orange)','p-medium':'var(--amber)'}[risk.cls]||'var(--border)';
+    return `<div style="border:1px solid var(--border);border-left:3px solid ${borderColor};border-radius:6px;padding:12px 14px;margin-bottom:8px;background:#fafbfc">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <strong style="font-size:12px;color:var(--navy)">${esc(p.name)}</strong>
+        <span class="pill ${risk.cls}">${risk.label}</span>
+      </div>
+      <p style="font-size:12px;color:var(--gray)">${esc(risk.note)}</p>
+    </div>`;
+  }).join('');
+}
+
+function exportCsv(){
+  if(!state.policies.length){ setStatus('statusTop','Nenhuma política para exportar.','warn'); return; }
+  const rows=[['ID','Nome','Estado','Acao','Escopo','AtributoABAC','Observacao','Risco']];
+  state.policies.forEach(p=>rows.push([p.id,p.name,p.state,p.action,p.scope,p.abac,p.note,assessRisk(p).label]));
+  download(`conditional-access-inventory-${new Date().toISOString().split('T')[0]}.csv`,toCsv(rows),'text/csv;charset=utf-8;');
+}
+function exportJson(){
+  if(!state.policies.length){ setStatus('statusTop','Nenhuma política para exportar.','warn'); return; }
+  const payload={tool:'Conditional Access Analyzer',version:'1.0.0',generatedAt:new Date().toISOString(),policies:state.policies.map(p=>({...p,risk:assessRisk(p).label}))};
+  download(`conditional-access-inventory-${new Date().toISOString().split('T')[0]}.json`,JSON.stringify(payload,null,2),'application/json;charset=utf-8;');
+}
+function resetAll(){
+  state.policies=[];
+  render();
+  setStatus('statusTop','Sessão limpa.','info');
+}
+
+render();
+</script>
+</body>
+</html>

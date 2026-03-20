@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PBAC Policy Simulator | IAM Série 4</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#003366;--navy-mid:#004080;--navy-light:#0056b3;--accent:#c8922a;
+  --accent-light:#e8a83a;--bg:#f4f6f8;--white:#fff;--gray:#666;
+  --border:#d1d9e4;--text:#1a2340;--green:#1a7a4a;--green-light:#e8f5ee;
+  --red:#a32020;--red-light:#fdf0f0;--amber:#a06400;--amber-light:#fff8ed;
+  --blue-light:#eef5ff;--orange:#c2410c;--orange-light:#fff6ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.breadcrumb{background:var(--navy);padding:10px 30px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.4)}
+.breadcrumb a{color:var(--accent-light);text-decoration:none}.breadcrumb span{margin:0 6px}
+header{background:var(--navy);padding:44px 30px 40px;position:relative;overflow:hidden}
+header::after{content:'PBAC';position:absolute;bottom:-18px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:100px;font-weight:700;color:rgba(255,255,255,.03);pointer-events:none}
+.hi{max-width:1180px;margin:auto;position:relative;z-index:1}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:rgba(200,146,42,.2);color:var(--accent-light);border:1px solid rgba(200,146,42,.4);padding:4px 12px;border-radius:3px;letter-spacing:2px;margin-bottom:16px}
+header h1{font-size:28px;font-weight:700;color:#fff;margin-bottom:10px}
+header h1 span{color:var(--accent-light)}
+header p{font-size:14px;color:rgba(255,255,255,.68);max-width:760px}
+main{max-width:1180px;margin:0 auto;padding:28px 22px 60px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:18px}
+.sl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-6{grid-column:span 6}.span-4{grid-column:span 4}
+@media(max-width:920px){.span-8,.span-6,.span-4{grid-column:span 12}}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+label{display:block;font-size:12px;color:var(--gray);margin-bottom:5px}
+input[type=text],select,textarea{width:100%;border:1px solid var(--border);border-radius:6px;padding:10px 12px;font:inherit;color:var(--text);background:#fff}
+textarea{min-height:80px;resize:vertical}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{border:none;border-radius:6px;padding:11px 14px;cursor:pointer;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.btn-primary{background:var(--navy);color:#fff}.btn-outline{background:#fff;border:1px solid var(--navy);color:var(--navy)}.btn-success{background:var(--green);color:#fff}.btn-danger{background:var(--red);color:#fff}
+.status{margin-top:14px;padding:12px 14px;border-radius:6px;border:1px solid var(--border);background:#fafbfc;font-size:12px;color:var(--gray)}
+.info{background:var(--blue-light);color:var(--navy-mid)}.ok{background:var(--green-light);color:var(--green)}.warn{background:var(--amber-light);color:var(--amber)}.err{background:var(--red-light);color:var(--red)}
+.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:6px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{border-bottom:1px solid var(--border);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f8fafc;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--gray)}
+tr:nth-child(even) td{background:#fcfdff}
+.pill{display:inline-block;padding:3px 8px;border-radius:999px;font:600 10px 'IBM Plex Mono',monospace}
+.p-permit{background:var(--green-light);color:var(--green)}.p-deny{background:var(--red-light);color:var(--red)}.p-cond{background:var(--amber-light);color:var(--amber)}.p-na{background:#f0f2f5;color:var(--gray)}
+.policy-card{background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:10px}
+.policy-card h4{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px;display:flex;justify-content:space-between}
+.pc-effect-permit{border-left:3px solid var(--green)}.pc-effect-deny{border-left:3px solid var(--red)}.pc-effect-conditional{border-left:3px solid var(--amber)}
+.pc-conditions{font-size:11px;color:var(--gray);font-family:'IBM Plex Mono',monospace;line-height:1.6}
+.remove-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--red);cursor:pointer;border:none;background:none}
+/* Resultado da simulação */
+.sim-result{border-radius:8px;padding:20px 22px;margin-bottom:18px;border:1px solid}
+.sim-permit{background:var(--green-light);border-color:#b7dec9}
+.sim-deny{background:var(--red-light);border-color:#f2c2bb}
+.sim-conditional{background:var(--amber-light);border-color:#ecd4ab}
+.sim-title{font-size:18px;font-weight:700;margin-bottom:8px}
+.sim-permit .sim-title{color:var(--green)}.sim-deny .sim-title{color:var(--red)}.sim-conditional .sim-title{color:var(--amber)}
+.sim-detail{font-size:13px;line-height:1.7}
+.match-item{font-size:12px;font-family:'IBM Plex Mono',monospace;padding:4px 8px;border-radius:4px;margin:2px 0;display:block}
+.match-ok{background:var(--green-light);color:var(--green)}.match-fail{background:var(--red-light);color:var(--red)}.match-skip{background:#f0f2f5;color:var(--gray)}
+.note{font-size:12px;color:var(--gray)}
+.iso-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;background:#f0f4fa;color:var(--navy-light);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="breadcrumb">
+  <a href="../../index.html">IAM-RISK-ENGINEERING-TOOLKIT</a><span>/</span>
+  <a href="../../docs/concepts/pbac.html">PBAC</a><span>/</span>Policy Simulator
+</div>
+<header>
+  <div class="hi">
+    <div class="badge">SÉRIE 4 · PBAC · ISO 5.15</div>
+    <h1>PBAC <span>Policy Simulator</span></h1>
+    <p>Define políticas de acesso baseadas em combinações de atributos e simula decisões para diferentes perfis de identidade. Demonstra como PBAC centraliza a lógica de acesso em políticas explícitas, auditáveis e independentes de função.</p>
+  </div>
+</header>
+<main>
+<div class="grid">
+
+  <!-- Conceito -->
+  <section class="card span-12">
+    <div class="sl">Princípio PBAC</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
+      <div style="background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px">RBAC pergunta</div>
+        <div style="font-size:13px;color:var(--text)">Qual é a <strong>função</strong> do usuário?</div>
+      </div>
+      <div style="background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px">ABAC pergunta</div>
+        <div style="font-size:13px;color:var(--text)">Quais são os <strong>atributos</strong> do contexto?</div>
+      </div>
+      <div style="background:var(--navy);border-radius:6px;padding:14px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent-light);margin-bottom:6px">PBAC pergunta</div>
+        <div style="font-size:13px;color:#fff">A <strong>política</strong> permite este acesso neste contexto?</div>
+      </div>
+      <div style="background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px">Efeito possível</div>
+        <div style="font-size:13px;color:var(--text)"><strong>Permit</strong> · <strong>Deny</strong> · <strong>Conditional</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Definição de políticas -->
+  <section class="card span-6">
+    <div class="sl">1. Definir política</div>
+    <div class="meta-grid">
+      <div><label>Nome da política</label><input type="text" id="pName" placeholder="POL-001 — Acesso a dados financeiros"></div>
+      <div><label>Recurso protegido</label><input type="text" id="pResource" placeholder="finance-reports, SharePoint-Finance..."></div>
+      <div><label>Efeito</label>
+        <select id="pEffect">
+          <option value="Permit">Permit — permitir se condições atendidas</option>
+          <option value="Deny">Deny — bloquear se condições atendidas</option>
+          <option value="Conditional">Conditional — permitir com requisito adicional</option>
+        </select>
+      </div>
+      <div><label>Requisito adicional (se Conditional)</label><input type="text" id="pReq" placeholder="Ex.: MFA obrigatório, aprovação do gestor..."></div>
+    </div>
+    <p style="font-size:12px;color:var(--gray);margin-top:14px;margin-bottom:8px"><strong>Condições da política</strong> — defina os atributos exigidos:</p>
+    <div class="meta-grid">
+      <div><label>Função (role)</label>
+        <select id="cRole">
+          <option value="">Qualquer</option>
+          <option value="Finance">Finance</option>
+          <option value="TI">TI / Security</option>
+          <option value="Admin">Administrador</option>
+          <option value="RH">RH</option>
+          <option value="Externo">Externo / Guest</option>
+        </select>
+      </div>
+      <div><label>Localização</label>
+        <select id="cLocation">
+          <option value="">Qualquer</option>
+          <option value="Rede corporativa">Rede corporativa</option>
+          <option value="VPN">VPN</option>
+          <option value="Externa">Externa</option>
+          <option value="Bloqueada">Localização bloqueada</option>
+        </select>
+      </div>
+      <div><label>Dispositivo</label>
+        <select id="cDevice">
+          <option value="">Qualquer</option>
+          <option value="Gerenciado">Gerenciado (Intune)</option>
+          <option value="Pessoal">Pessoal</option>
+          <option value="Desconhecido">Desconhecido</option>
+        </select>
+      </div>
+      <div><label>MFA</label>
+        <select id="cMfa">
+          <option value="">Indiferente</option>
+          <option value="Sim">Satisfeito</option>
+          <option value="Não">Não satisfeito</option>
+        </select>
+      </div>
+      <div><label>Risco de sessão</label>
+        <select id="cRisk">
+          <option value="">Qualquer</option>
+          <option value="Nenhum">Nenhum</option>
+          <option value="Baixo">Baixo</option>
+          <option value="Médio">Médio</option>
+          <option value="Alto">Alto</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="addPolicy()">Adicionar política</button>
+      <button class="btn btn-outline" onclick="loadExamplePolicies()">Carregar exemplo</button>
+    </div>
+    <div id="policyStatus" class="status info">Defina políticas e depois simule decisões de acesso.</div>
+  </section>
+
+  <!-- Políticas definidas -->
+  <section class="card span-6">
+    <div class="sl">2. Políticas definidas</div>
+    <div id="policiesList"><p class="note">Nenhuma política definida.</p></div>
+    <button class="btn btn-danger" style="margin-top:10px" onclick="clearPolicies()">Limpar políticas</button>
+  </section>
+
+  <!-- Simulação -->
+  <section class="card span-6">
+    <div class="sl">3. Simular decisão de acesso</div>
+    <p class="note" style="margin-bottom:12px">Defina o perfil da identidade e o recurso que está tentando acessar. O simulador avalia todas as políticas e determina a decisão final.</p>
+    <div class="meta-grid">
+      <div><label>Recurso solicitado</label><input type="text" id="sResource" placeholder="finance-reports"></div>
+      <div><label>Função (role)</label>
+        <select id="sRole">
+          <option value="Finance">Finance</option>
+          <option value="TI">TI / Security</option>
+          <option value="Admin">Administrador</option>
+          <option value="RH">RH</option>
+          <option value="Externo">Externo / Guest</option>
+        </select>
+      </div>
+      <div><label>Localização</label>
+        <select id="sLocation">
+          <option value="Rede corporativa">Rede corporativa</option>
+          <option value="VPN">VPN</option>
+          <option value="Externa">Externa</option>
+          <option value="Bloqueada">Localização bloqueada</option>
+        </select>
+      </div>
+      <div><label>Dispositivo</label>
+        <select id="sDevice">
+          <option value="Gerenciado">Gerenciado (Intune)</option>
+          <option value="Pessoal">Pessoal</option>
+          <option value="Desconhecido">Desconhecido</option>
+        </select>
+      </div>
+      <div><label>MFA</label>
+        <select id="sMfa">
+          <option value="Sim">Satisfeito</option>
+          <option value="Não">Não satisfeito</option>
+        </select>
+      </div>
+      <div><label>Risco de sessão</label>
+        <select id="sRisk">
+          <option value="Nenhum">Nenhum</option>
+          <option value="Baixo">Baixo</option>
+          <option value="Médio">Médio</option>
+          <option value="Alto">Alto</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="simulate()">Simular decisão</button>
+    </div>
+  </section>
+
+  <!-- Resultado -->
+  <section class="card span-6">
+    <div class="sl">4. Resultado da simulação</div>
+    <div id="simResult"><p class="note">Execute uma simulação para ver o resultado.</p></div>
+  </section>
+
+  <!-- Log -->
+  <section class="card span-12">
+    <div class="sl">5. Log de simulações</div>
+    <div class="table-wrap">
+      <table id="logTable">
+        <thead><tr><th>Recurso</th><th>Função</th><th>Localização</th><th>Dispositivo</th><th>MFA</th><th>Risco</th><th>Decisão</th><th>Política aplicada</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-success" onclick="exportLog()">Baixar log CSV</button>
+      <button class="btn btn-danger" onclick="clearLog()">Limpar log</button>
+    </div>
+    <p class="note" style="margin-top:10px">Conteúdo educacional. Esta ferramenta demonstra o conceito de PBAC — não é um motor de políticas de produção. Autor: Gilberto Gonçalves dos Santos Filho.</p>
+  </section>
+
+</div>
+</main>
+
+<script>
+const state = { policies: [], log: [] };
+
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function setStatus(id, msg, cls){ const el=document.getElementById(id); if(!el) return; el.className='status '+cls; el.textContent=msg; }
+function toCsv(rows){ return rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n') }
+function download(name,content,type){ const blob=new Blob([content],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href); }
+
+function addPolicy(){
+  const name = document.getElementById('pName').value.trim();
+  const resource = document.getElementById('pResource').value.trim();
+  if(!name||!resource){ setStatus('policyStatus','Informe nome e recurso protegido.','warn'); return; }
+  const p = {
+    id: state.policies.length+1,
+    name, resource,
+    effect: document.getElementById('pEffect').value,
+    requirement: document.getElementById('pReq').value.trim(),
+    conditions: {
+      role:     document.getElementById('cRole').value,
+      location: document.getElementById('cLocation').value,
+      device:   document.getElementById('cDevice').value,
+      mfa:      document.getElementById('cMfa').value,
+      risk:     document.getElementById('cRisk').value,
+    }
+  };
+  state.policies.push(p);
+  renderPolicies();
+  setStatus('policyStatus',`Política adicionada. Total: ${state.policies.length}.`,'ok');
+}
+
+function loadExamplePolicies(){
+  state.policies = [
+    {id:1, name:'POL-001 — Acesso financeiro corporativo', resource:'finance-reports',
+     effect:'Permit', requirement:'',
+     conditions:{role:'Finance', location:'Rede corporativa', device:'Gerenciado', mfa:'Sim', risk:''}},
+    {id:2, name:'POL-002 — Bloquear acesso externo a dados críticos', resource:'finance-reports',
+     effect:'Deny', requirement:'',
+     conditions:{role:'', location:'Externa', device:'', mfa:'', risk:''}},
+    {id:3, name:'POL-003 — Acesso financeiro via VPN com MFA', resource:'finance-reports',
+     effect:'Conditional', requirement:'MFA obrigatório + aprovação do gestor',
+     conditions:{role:'Finance', location:'VPN', device:'', mfa:'Sim', risk:'Nenhum'}},
+    {id:4, name:'POL-004 — Bloquear sessão de alto risco', resource:'',
+     effect:'Deny', requirement:'',
+     conditions:{role:'', location:'', device:'', mfa:'', risk:'Alto'}},
+    {id:5, name:'POL-005 — Admin com dispositivo gerenciado', resource:'admin-portal',
+     effect:'Permit', requirement:'',
+     conditions:{role:'Admin', location:'', device:'Gerenciado', mfa:'Sim', risk:''}},
+  ];
+  renderPolicies();
+  setStatus('policyStatus',`${state.policies.length} políticas de exemplo carregadas.`,'info');
+}
+
+function renderPolicies(){
+  const el = document.getElementById('policiesList');
+  if(!state.policies.length){ el.innerHTML='<p class="note">Nenhuma política definida.</p>'; return; }
+  const effectClass = {Permit:'pc-effect-permit', Deny:'pc-effect-deny', Conditional:'pc-effect-conditional'};
+  const effectPill = {Permit:'p-permit', Deny:'p-deny', Conditional:'p-cond'};
+  el.innerHTML = state.policies.map(p=>{
+    const conds = Object.entries(p.conditions).filter(([,v])=>v).map(([k,v])=>`${k}: ${v}`).join(' · ');
+    return `<div class="policy-card ${effectClass[p.effect]||''}">
+      <h4>
+        <span>${esc(p.name)}</span>
+        <button class="remove-btn" onclick="removePolicy(${p.id})">✕ remover</button>
+      </h4>
+      <div style="margin-bottom:6px">
+        <span class="pill ${effectPill[p.effect]||'p-na'}">${esc(p.effect)}</span>
+        <span class="iso-tag" style="margin-left:6px">${esc(p.resource||'Todos os recursos')}</span>
+        ${p.requirement?`<span style="font-size:11px;color:var(--amber);margin-left:8px">+ ${esc(p.requirement)}</span>`:''}
+      </div>
+      <div class="pc-conditions">${conds||'Nenhuma condição específica — aplica a todos'}</div>
+    </div>`;
+  }).join('');
+}
+
+function removePolicy(id){
+  state.policies = state.policies.filter(p=>p.id!==id);
+  renderPolicies();
+}
+
+function clearPolicies(){ state.policies=[]; renderPolicies(); setStatus('policyStatus','Políticas removidas.','info'); }
+
+function conditionMatches(pCond, ctx){
+  if(pCond && ctx !== pCond) return false;
+  return true;
+}
+
+function simulate(){
+  const ctx = {
+    resource: document.getElementById('sResource').value.trim(),
+    role:     document.getElementById('sRole').value,
+    location: document.getElementById('sLocation').value,
+    device:   document.getElementById('sDevice').value,
+    mfa:      document.getElementById('sMfa').value,
+    risk:     document.getElementById('sRisk').value,
+  };
+
+  if(!state.policies.length){
+    document.getElementById('simResult').innerHTML='<p class="note">Defina ao menos uma política antes de simular.</p>';
+    return;
+  }
+
+  const evaluations = [];
+
+  state.policies.forEach(p=>{
+    // Verificar se a política se aplica ao recurso
+    const resourceMatch = !p.resource || !ctx.resource || p.resource === ctx.resource || ctx.resource.includes(p.resource);
+    if(!resourceMatch){ evaluations.push({policy:p, matches:false, reason:'Recurso não corresponde'}); return; }
+
+    // Avaliar condições
+    const checks = [];
+    const c = p.conditions;
+    if(c.role)     checks.push({attr:'role',     expected:c.role,     actual:ctx.role,     ok: ctx.role===c.role});
+    if(c.location) checks.push({attr:'location', expected:c.location, actual:ctx.location, ok: ctx.location===c.location});
+    if(c.device)   checks.push({attr:'device',   expected:c.device,   actual:ctx.device,   ok: ctx.device===c.device});
+    if(c.mfa)      checks.push({attr:'mfa',      expected:c.mfa,      actual:ctx.mfa,      ok: ctx.mfa===c.mfa});
+    if(c.risk)     checks.push({attr:'risk',     expected:c.risk,     actual:ctx.risk,     ok: ctx.risk===c.risk});
+
+    const allMatch = checks.length===0 || checks.every(ch=>ch.ok);
+    evaluations.push({policy:p, matches:allMatch, checks, reason:allMatch?'Todas as condições atendidas':'Condição não atendida'});
+  });
+
+  // Determinar decisão final — Deny tem precedência
+  const matchedPolicies = evaluations.filter(e=>e.matches);
+  let finalDecision = 'Sem política aplicável — acesso negado por padrão';
+  let finalClass = 'sim-deny';
+  let finalPill = 'p-deny';
+  let appliedPolicy = null;
+
+  if(matchedPolicies.length){
+    const deny = matchedPolicies.find(e=>e.policy.effect==='Deny');
+    if(deny){ finalDecision='Deny'; finalClass='sim-deny'; finalPill='p-deny'; appliedPolicy=deny.policy; }
+    else {
+      const cond = matchedPolicies.find(e=>e.policy.effect==='Conditional');
+      const permit = matchedPolicies.find(e=>e.policy.effect==='Permit');
+      if(cond){ finalDecision='Conditional'; finalClass='sim-conditional'; finalPill='p-cond'; appliedPolicy=cond.policy; }
+      else if(permit){ finalDecision='Permit'; finalClass='sim-permit'; finalPill='p-permit'; appliedPolicy=permit.policy; }
+    }
+  }
+
+  const decisionLabel = {Permit:'✓ Acesso Permitido', Deny:'✗ Acesso Negado', Conditional:'⚠ Acesso Condicional', 'Sem política aplicável — acesso negado por padrão':'✗ Acesso Negado (padrão)'}[finalDecision]||finalDecision;
+
+  const evalHtml = evaluations.map(e=>`
+    <div style="margin-bottom:8px">
+      <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:3px">${esc(e.policy.name)}</div>
+      ${e.matches
+        ? `<span class="match-item match-ok">✓ Política aplicada — efeito: ${esc(e.policy.effect)}</span>`
+        : `<span class="match-item match-skip">— Não aplicada: ${esc(e.reason)}</span>`
+      }
+      ${(e.checks||[]).map(ch=>`<span class="match-item ${ch.ok?'match-ok':'match-fail'}">${ch.ok?'✓':'✗'} ${ch.attr}: esperado "${ch.expected}" · atual "${ch.actual}"</span>`).join('')}
+    </div>
+  `).join('');
+
+  document.getElementById('simResult').innerHTML = `
+    <div class="sim-result ${finalClass}">
+      <div class="sim-title">${esc(decisionLabel)}</div>
+      <div class="sim-detail">
+        ${appliedPolicy?`Política aplicada: <strong>${esc(appliedPolicy.name)}</strong>`:'Nenhuma política correspondente — negado por padrão (deny-all).'}
+        ${appliedPolicy?.requirement?`<br><strong>Requisito adicional:</strong> ${esc(appliedPolicy.requirement)}`:''}
+      </div>
+    </div>
+    <div style="margin-top:14px"><div class="sl" style="margin-top:0">Avaliação por política</div>${evalHtml}</div>
+  `;
+
+  // Log
+  state.log.push({
+    resource: ctx.resource||'(todos)',
+    role: ctx.role, location: ctx.location, device: ctx.device,
+    mfa: ctx.mfa, risk: ctx.risk,
+    decision: finalDecision,
+    policy: appliedPolicy?.name || 'Nenhuma',
+    ts: new Date().toISOString()
+  });
+  renderLog();
+}
+
+function renderLog(){
+  const tbody = document.querySelector('#logTable tbody');
+  if(!state.log.length){ tbody.innerHTML='<tr><td colspan="8" style="color:var(--gray);text-align:center">Nenhuma simulação executada</td></tr>'; return; }
+  const pillMap = {Permit:'p-permit',Deny:'p-deny',Conditional:'p-cond'};
+  tbody.innerHTML = [...state.log].reverse().map(l=>`<tr>
+    <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${esc(l.resource)}</td>
+    <td>${esc(l.role)}</td>
+    <td>${esc(l.location)}</td>
+    <td>${esc(l.device)}</td>
+    <td>${esc(l.mfa)}</td>
+    <td>${esc(l.risk)}</td>
+    <td><span class="pill ${pillMap[l.decision]||'p-na'}">${esc(l.decision)}</span></td>
+    <td style="font-size:11px;color:var(--gray)">${esc(l.policy)}</td>
+  </tr>`).join('');
+}
+
+function exportLog(){
+  if(!state.log.length){ return; }
+  const rows=[['Recurso','Funcao','Localizacao','Dispositivo','MFA','Risco','Decisao','PoliticaAplicada','Timestamp']];
+  state.log.forEach(l=>rows.push([l.resource,l.role,l.location,l.device,l.mfa,l.risk,l.decision,l.policy,l.ts]));
+  download(`pbac-simulation-log-${new Date().toISOString().split('T')[0]}.csv`,toCsv(rows),'text/csv;charset=utf-8;');
+}
+function clearLog(){ state.log=[]; renderLog(); }
+
+renderLog();
+renderPolicies();
+</script>
+</body>
+</html>

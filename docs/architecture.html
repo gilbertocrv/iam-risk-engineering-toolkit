@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture | IAM RBAC · PAM · SoD Toolkit</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#003366;--navy-mid:#004080;--navy-light:#0056b3;--accent:#c8922a;
+  --accent-light:#e8a83a;--bg:#f4f6f8;--white:#fff;--gray:#666;
+  --border:#d1d9e4;--text:#1a2340;--green:#1a7a4a;--green-light:#e8f5ee;
+  --red:#a32020;--red-light:#fdf0f0;--amber:#a06400;--amber-light:#fff8ed;
+  --blue-light:#eef5ff;--orange:#c2410c;--orange-light:#fff6ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+
+.breadcrumb{background:var(--navy);padding:10px 30px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.4)}
+.breadcrumb a{color:var(--accent-light);text-decoration:none}
+.breadcrumb span{margin:0 6px}
+
+header{background:var(--navy);padding:44px 30px 40px;position:relative;overflow:hidden}
+header::after{content:'ARCH';position:absolute;bottom:-18px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:100px;font-weight:700;color:rgba(255,255,255,.03);pointer-events:none}
+.header-inner{max-width:1100px;margin:auto;position:relative;z-index:1}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:rgba(200,146,42,.2);color:var(--accent-light);border:1px solid rgba(200,146,42,.4);padding:4px 12px;border-radius:3px;letter-spacing:2px;margin-bottom:16px}
+header h1{font-size:28px;font-weight:700;color:#fff;margin-bottom:10px}
+header h1 span{color:var(--accent-light)}
+header p{font-size:14px;color:rgba(255,255,255,.68);max-width:700px}
+
+main{max-width:1100px;margin:0 auto;padding:36px 30px 70px}
+.section-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:16px;margin-top:36px}
+.section-label:first-child{margin-top:0}
+
+/* ── DIAGRAMA PRINCIPAL ─────────────────────────────────────── */
+.arch-diagram{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:32px 28px;margin-bottom:8px}
+.arch-flow{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding-bottom:8px}
+.arch-node{flex:0 0 auto;width:150px;border-radius:8px;padding:16px 14px;border:1px solid;cursor:pointer;transition:all .2s;position:relative}
+.arch-node:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,51,102,.12)}
+.arch-node.active{outline:2px solid var(--accent);outline-offset:2px}
+.arch-node-icon{font-size:20px;margin-bottom:8px}
+.arch-node-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;font-weight:600}
+.arch-node-name{font-size:13px;font-weight:700;margin-bottom:6px}
+.arch-node-iso{font-family:'IBM Plex Mono',monospace;font-size:10px;opacity:.75}
+
+.n-identity{background:#f0f4fa;border-color:#c8d4e8;color:var(--navy)}
+.n-rbac{background:#eef5ff;border-color:#bfdbfe;color:var(--navy-light)}
+.n-pam{background:var(--orange-light);border-color:#fcd9bd;color:var(--orange)}
+.n-sod{background:var(--red-light);border-color:#f2c2bb;color:var(--red)}
+.n-gov{background:var(--amber-light);border-color:#ecd4ab;color:var(--amber)}
+.n-review{background:var(--green-light);border-color:#b7dec9;color:var(--green)}
+
+.arch-arrow{display:flex;align-items:center;padding:0 6px;flex-shrink:0;color:#94a3b8;font-size:20px;font-weight:300}
+.arch-arrow-back{display:flex;align-items:center;padding:0 4px;flex-shrink:0;color:var(--accent);font-size:14px}
+
+/* ── DETAIL PANEL ───────────────────────────────────────────── */
+.detail-panel{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:24px;transition:all .2s}
+.detail-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px}
+.detail-icon{font-size:28px;flex-shrink:0}
+.detail-title{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.detail-subtitle{font-size:13px;color:var(--gray)}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.detail-block{background:#fafbfc;border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.detail-block h4{font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.detail-block ul{padding-left:16px;font-size:13px;color:var(--gray);line-height:1.75}
+.iso-pill{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 8px;background:#f0f4fa;color:var(--navy-light);border-radius:3px;margin:2px}
+.tool-ref{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--navy-light);text-decoration:none;border:1px solid var(--border);padding:6px 10px;border-radius:4px;background:#fff;margin-top:8px}
+.tool-ref:hover{border-color:var(--navy-light)}
+
+/* ── FLUXO ESTRUTURAL ───────────────────────────────────────── */
+.flow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:8px}
+.flow-step{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:18px}
+.flow-step-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);margin-bottom:6px;letter-spacing:1px}
+.flow-step-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.flow-step-desc{font-size:12px;color:var(--gray);line-height:1.6}
+.flow-step.s3{border-top:3px solid var(--green)}
+.flow-step.s4{border-top:3px solid var(--navy-light)}
+
+/* ── TABELA ISO ──────────────────────────────────────────────── */
+.iso-table{background:var(--white);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:24px}
+.iso-table table{width:100%;border-collapse:collapse;font-size:13px}
+.iso-table th{background:#f8fafc;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--gray);padding:12px 16px;text-align:left;border-bottom:1px solid var(--border)}
+.iso-table td{padding:12px 16px;border-bottom:1px solid #f0f2f5;vertical-align:top}
+.iso-table tr:last-child td{border-bottom:none}
+
+/* ── CONCLUSÃO ───────────────────────────────────────────────── */
+.conclusion{background:var(--navy);border-radius:8px;padding:28px 30px;margin-bottom:24px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.conclusion-layers{display:flex;flex-direction:column;gap:8px}
+.c-layer{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.1)}
+.c-layer-verb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent-light);font-weight:600;min-width:80px}
+.c-layer-name{font-size:13px;color:rgba(255,255,255,.85)}
+.conclusion-premise{display:flex;flex-direction:column;justify-content:center}
+.conclusion-premise p{font-size:15px;color:rgba(255,255,255,.75);line-height:1.8;margin-bottom:14px}
+.conclusion-premise strong{color:#fff}
+
+.footer-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.footer-link{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--navy-light);text-decoration:none;border:1px solid var(--border);background:#fff;border-radius:4px;padding:8px 12px}
+.footer-link:hover{border-color:var(--navy-light)}
+.footer-note{font-size:11px;color:var(--gray);margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+
+@media(max-width:768px){
+  .arch-flow{flex-direction:column}
+  .arch-arrow{transform:rotate(90deg);justify-content:center;padding:4px 0}
+  .conclusion{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="breadcrumb">
+  <a href="../index.html">IAM-RISK-ENGINEERING-TOOLKIT</a><span>/</span>ARCHITECTURE
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="badge">SÉRIE 4 · ARQUITETURA LÓGICA</div>
+    <h1>Architecture — IAM RBAC · PAM · <span>SoD Toolkit</span></h1>
+    <p>Arquitetura orientada a risco com quatro camadas complementares: estrutura de acesso, classificação de privilégio, detecção de conflitos e sustentabilidade do modelo.</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- DIAGRAMA PRINCIPAL -->
+  <div class="section-label">Visão geral — camadas da arquitetura</div>
+  <div class="arch-diagram">
+    <p style="font-size:12px;color:var(--gray);margin-bottom:20px">Clique em cada camada para ver detalhes, ferramentas e controles ISO associados.</p>
+    <div class="arch-flow">
+      <div class="arch-node n-identity" onclick="showDetail('identity')">
+        <div class="arch-node-icon">👤</div>
+        <div class="arch-node-label">Entrada</div>
+        <div class="arch-node-name">Identidade / JML</div>
+        <div class="arch-node-iso">Ciclo de vida</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node n-rbac" onclick="showDetail('rbac')">
+        <div class="arch-node-icon">🗂️</div>
+        <div class="arch-node-label">Camada 1</div>
+        <div class="arch-node-name">RBAC</div>
+        <div class="arch-node-iso">5.15 · 8.3</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node n-pam" onclick="showDetail('pam')">
+        <div class="arch-node-icon">🔐</div>
+        <div class="arch-node-label">Camada 2</div>
+        <div class="arch-node-name">PAM</div>
+        <div class="arch-node-iso">8.2</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node n-sod" onclick="showDetail('sod')">
+        <div class="arch-node-icon">⚡</div>
+        <div class="arch-node-label">Camada 3</div>
+        <div class="arch-node-name">SoD</div>
+        <div class="arch-node-iso">5.3</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node n-gov" onclick="showDetail('gov')">
+        <div class="arch-node-icon">🔄</div>
+        <div class="arch-node-label">Camada 4</div>
+        <div class="arch-node-name">Governança</div>
+        <div class="arch-node-iso">5.15 · 5.18</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node n-review" onclick="showDetail('review')">
+        <div class="arch-node-icon">✅</div>
+        <div class="arch-node-label">Integração</div>
+        <div class="arch-node-name">Revisão / Série 3</div>
+        <div class="arch-node-iso">5.33</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL PANEL -->
+  <div class="detail-panel" id="detailPanel">
+    <p style="font-size:13px;color:var(--gray)">Selecione uma camada acima para ver detalhes.</p>
+  </div>
+
+  <!-- FLUXO ESTRUTURAL -->
+  <div class="section-label">Fluxo estrutural — do acesso ao controle</div>
+  <div class="flow-grid">
+    <div class="flow-step s4">
+      <div class="flow-step-num">01 · RBAC</div>
+      <div class="flow-step-title">Estruturar por função</div>
+      <div class="flow-step-desc">Atribuir acesso via roles e grupos nomeados por função. Eliminar concessão direta por usuário.</div>
+    </div>
+    <div class="flow-step s4">
+      <div class="flow-step-num">02 · PAM</div>
+      <div class="flow-step-title">Classificar por impacto</div>
+      <div class="flow-step-desc">Identificar contas privilegiadas. Classificar em Tier 0–2. Aplicar controles proporcionais: MFA, PIM, monitoramento.</div>
+    </div>
+    <div class="flow-step s4">
+      <div class="flow-step-num">03 · SoD</div>
+      <div class="flow-step-title">Validar combinações</div>
+      <div class="flow-step-desc">Cruzar roles atribuídas com catálogo de conflitos. Detectar combinações incompatíveis com segregação de funções.</div>
+    </div>
+    <div class="flow-step s4">
+      <div class="flow-step-num">04 · Governança</div>
+      <div class="flow-step-title">Manter o modelo</div>
+      <div class="flow-step-desc">Detectar degradação: roles órfãs, acumulação excessiva, grupos sem membros. Preservar semântica do RBAC.</div>
+    </div>
+    <div class="flow-step s3">
+      <div class="flow-step-num">05 · SÉRIE 3</div>
+      <div class="flow-step-title">Revisar e decidir</div>
+      <div class="flow-step-desc">Access Recertification Helper processa achados SoD e de auditoria. Gera evidência com rastreabilidade SHA-256.</div>
+    </div>
+    <div class="flow-step s3">
+      <div class="flow-step-num">06 · SÉRIE 3</div>
+      <div class="flow-step-title">Registrar e comprovar</div>
+      <div class="flow-step-desc">Evidence Register consolida manifesto, decisões e hashes. Report Builder gera saída executiva e técnica auditável.</div>
+    </div>
+  </div>
+
+  <!-- DUPLA NATUREZA SoD -->
+  <div class="section-label">Dupla natureza do SoD</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:8px">
+    <div style="background:var(--white);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:6px;padding:20px 22px">
+      <h3 style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">SoD como modelo <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray);font-weight:400">(design-time)</span></h3>
+      <p style="font-size:12px;color:var(--gray);line-height:1.7">Matriz de conflitos definida antes da análise. Independente de usuário — define o que é incompatível. O catálogo pode evoluir separadamente dos dados analisados.</p>
+      <p style="font-size:12px;color:var(--gray);margin-top:8px"><strong style="color:var(--navy)">Entrada:</strong> catálogo de conflitos (SOD-001 a SOD-010+)<br><strong style="color:var(--navy)">Saída:</strong> regras aplicadas durante análise</p>
+    </div>
+    <div style="background:var(--white);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:6px;padding:20px 22px">
+      <h3 style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">SoD como detecção <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray);font-weight:400">(run-time)</span></h3>
+      <p style="font-size:12px;color:var(--gray);line-height:1.7">Análise de usuários reais contra a matriz. Identifica violação concreta — quem tem quais combinações de roles incompatíveis.</p>
+      <p style="font-size:12px;color:var(--gray);margin-top:8px"><strong style="color:var(--navy)">Entrada:</strong> export de roles + catálogo<br><strong style="color:var(--navy)">Saída:</strong> achados com UPN, par de roles, severidade e evidência exportável</p>
+    </div>
+  </div>
+
+  <!-- TABELA ISO -->
+  <div class="section-label">Mapeamento ISO/IEC 27001:2022</div>
+  <div class="iso-table">
+    <table>
+      <thead><tr><th>Camada</th><th>Controle</th><th>Descrição</th><th>Ferramenta</th></tr></thead>
+      <tbody>
+        <tr><td><strong>RBAC</strong></td><td><span class="iso-pill">5.15</span></td><td style="font-size:12px;color:var(--gray)">Access Control — política e estrutura de acesso por função</td><td><span class="iso-pill">RBAC Role Mapper</span></td></tr>
+        <tr><td><strong>RBAC</strong></td><td><span class="iso-pill">8.3</span></td><td style="font-size:12px;color:var(--gray)">Information Access Restriction — restrição de acesso a informações sensíveis</td><td><span class="iso-pill">RBAC Role Mapper</span></td></tr>
+        <tr><td><strong>PAM</strong></td><td><span class="iso-pill">8.2</span></td><td style="font-size:12px;color:var(--gray)">Privileged Access Rights — controle de contas e acessos privilegiados</td><td><span class="iso-pill">PAM Inventory</span></td></tr>
+        <tr><td><strong>SoD</strong></td><td><span class="iso-pill">5.3</span></td><td style="font-size:12px;color:var(--gray)">Segregation of Duties — separação de funções incompatíveis</td><td><span class="iso-pill">SoD Conflict Analyzer</span></td></tr>
+        <tr><td><strong>Governança</strong></td><td><span class="iso-pill">5.15</span> <span class="iso-pill">5.18</span></td><td style="font-size:12px;color:var(--gray)">Access Rights Review — manutenção e revisão de direitos de acesso</td><td><span class="iso-pill">Role Explosion Analyzer</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CONCLUSÃO -->
+  <div class="section-label">Conclusão</div>
+  <div class="conclusion">
+    <div class="conclusion-layers">
+      <div class="c-layer"><span class="c-layer-verb">organiza</span><span class="c-layer-name">RBAC — estrutura de acesso por função</span></div>
+      <div class="c-layer"><span class="c-layer-verb">classifica</span><span class="c-layer-name">PAM — impacto e criticidade do privilégio</span></div>
+      <div class="c-layer"><span class="c-layer-verb">valida</span><span class="c-layer-name">SoD — combinações incompatíveis de acesso</span></div>
+      <div class="c-layer"><span class="c-layer-verb">sustenta</span><span class="c-layer-name">Governança — integridade do modelo ao longo do tempo</span></div>
+      <div class="c-layer"><span class="c-layer-verb">comprova</span><span class="c-layer-name">Revisão — evidência auditável com rastreabilidade</span></div>
+    </div>
+    <div class="conclusion-premise">
+      <p>IAM maduro <strong>não reage ao risco.</strong><br>Ele impede que o risco seja criado.</p>
+      <p style="font-size:12px">A arquitetura não automatiza decisões. Não substitui análise de negócio. Não elimina revisão formal. Estrutura o ambiente para que cada decisão seja tomada com informação suficiente.</p>
+    </div>
+  </div>
+
+  <div class="footer-links">
+    <a class="footer-link" href="../index.html">← Índice</a>
+    <a class="footer-link" href="../tools/rbac/role-mapper.html">RBAC Role Mapper</a>
+    <a class="footer-link" href="../tools/pam/pam-inventory.html">PAM Inventory</a>
+    <a class="footer-link" href="../tools/sod/sod-model.html">SoD Conflict Analyzer</a>
+    <a class="footer-link" href="../tools/sod/sod-risk-analyzer.html">Role Explosion Analyzer</a>
+    <a class="footer-link" href="../index.html">← Série 3</a>
+  </div>
+  <p class="footer-note">Conteúdo educacional independente. Baseado em normas públicas ISO/IEC 27001:2022 e documentação Microsoft Entra ID / SC-300. Autor: Gilberto Gonçalves dos Santos Filho.</p>
+
+</main>
+
+<script>
+const DETAILS = {
+  identity: {
+    icon:'👤', label:'ENTRADA', title:'Identidade / JML',
+    subtitle:'Ciclo de vida de identidades — Joiner · Mover · Leaver',
+    color:'#003366',
+    blocks:[
+      {title:'O que representa', items:['Ponto de entrada de toda identidade no modelo','Eventos JML disparam mudanças de acesso','Sem identidade bem gerenciada, RBAC não funciona']},
+      {title:'Eventos', items:['Joiner — nova identidade, acesso inicial','Mover — mudança de função, ajuste de role','Leaver — desligamento, revogação imediata']},
+      {title:'Risco sem controle', items:['Contas orfãs de ex-colaboradores','Acesso de função anterior mantido após mudança','Identidades sem departamento ou cargo definido']}
+    ],
+    iso:[], tools:[]
+  },
+  rbac: {
+    icon:'🗂️', label:'CAMADA 1', title:'RBAC — Estrutura de acesso',
+    subtitle:'Permissões atribuídas a funções, não diretamente a usuários',
+    color:'#1d4ed8',
+    blocks:[
+      {title:'Implementação no Entra ID', items:['Directory Roles — funções administrativas','Security Groups — funções de negócio','Nomear por função, não por pessoa']},
+      {title:'Função', items:['Reduzir concessão direta por usuário','Criar semântica de acesso auditável','Viabilizar análise SoD e revisão periódica']},
+      {title:'Risco mitigado', items:['Permission creep','Acesso sem dono funcional','Dificuldade de auditoria e revisão']}
+    ],
+    iso:['5.15 — Access Control','8.3 — Information Access Restriction'],
+    tools:[{name:'RBAC Role Mapper',href:'tools/rbac-role-mapper.html'}]
+  },
+  pam: {
+    icon:'🔐', label:'CAMADA 2', title:'PAM — Classificação de criticidade',
+    subtitle:'Contas privilegiadas classificadas por tier de impacto',
+    color:'#c2410c',
+    blocks:[
+      {title:'Modelo de tiers', items:['Tier 0 — controle do tenant (Global Admin, PRA)','Tier 1 — admin de serviços (User, Exchange, Intune)','Tier 2 — acesso elevado (Security Reader, Helpdesk)','Tier 3 — acesso padrão']},
+      {title:'Controles por tier', items:['Tier 0: conta dedicada + MFA obrigatório + PIM','Tier 1: MFA + just-in-time via PIM','Tier 2: MFA recomendado + revisão periódica']},
+      {title:'Risco mitigado', items:['Comprometimento de conta privilegiada sem MFA','Conta de serviço com role crítica sem controle','Acesso privilegiado inativo e esquecido']}
+    ],
+    iso:['8.2 — Privileged Access Rights'],
+    tools:[{name:'PAM Inventory',href:'tools/pam-inventory.html'}]
+  },
+  sod: {
+    icon:'⚡', label:'CAMADA 3', title:'SoD — Integridade do modelo',
+    subtitle:'Combinações de roles que violam Segregação de Funções',
+    color:'#a32020',
+    blocks:[
+      {title:'Exemplos de conflito', items:['User Admin + Authentication Admin','Global Admin + Privileged Role Admin','Application Admin + Privileged Role Admin','Authentication Admin + Privileged Auth Admin']},
+      {title:'Função', items:['Detectar combinações incompatíveis com segregação','Transformar acesso em risco mensurável','Alimentar decisões de recertificação (Série 3)']},
+      {title:'Risco mitigado', items:['Fraude interna por ausência de separação','Auto-escalonamento de privilégio sem supervisão','Quebra de controle no plano de identidade']}
+    ],
+    iso:['5.3 — Segregation of Duties','8.2 — Privileged Access Rights'],
+    tools:[{name:'SoD Conflict Analyzer',href:'tools/sod-conflict-analyzer.html'}]
+  },
+  gov: {
+    icon:'🔄', label:'CAMADA 4', title:'Role Governance — Sustentabilidade',
+    subtitle:'Controle da degradação estrutural do modelo ao longo do tempo',
+    color:'#a06400',
+    blocks:[
+      {title:'O que detecta', items:['Roles e grupos órfãos sem membros','Identidades com acumulação acima do limiar','Grupos com volume atípico de membros']},
+      {title:'Função', items:['Manter o modelo RBAC limpo e semântico','Preservar eficácia da análise SoD','Reduzir ruído nas revisões de acesso']},
+      {title:'Por que importa', items:['Sem governança, RBAC degenera com o tempo','Acumulação cria falsos negativos no SoD','Grupos vazios aumentam superfície sem valor']}
+    ],
+    iso:['5.15 — Access Control','5.18 — Access Rights Review'],
+    tools:[{name:'Role Explosion Analyzer',href:'tools/role-explosion-analyzer.html'}]
+  },
+  review: {
+    icon:'✅', label:'INTEGRAÇÃO', title:'Revisão — Série 3',
+    subtitle:'O ciclo operacional valida o estado atual das camadas estruturais',
+    color:'#1a7a4a',
+    blocks:[
+      {title:'Como a Série 4 alimenta a Série 3', items:['SoD Conflict Analyzer → CSV para Recertification Helper','RBAC Role Mapper → contexto para Access Audit','PAM Inventory → priorização de achados por tier']},
+      {title:'O que a Série 3 produz', items:['Decisões formais por achado (manter/remover/exceção)','Evidence Register com hashes SHA-256','Relatório executivo e técnico auditável']},
+      {title:'O ciclo completo', items:['Série 4 define a estrutura e detecta risco','Série 3 opera sobre essa estrutura e registra evidência','Feedback retorna para ajuste do modelo']}
+    ],
+    iso:['5.33 — Protection of Records','5.18 — Access Rights Review'],
+    tools:[
+      {name:'Access Recertification Helper',href:'https://gilbertocrv.github.io/iam-risk-engineering-toolkit/tools/access-recertification.html'},
+      {name:'Evidence Register',href:'https://gilbertocrv.github.io/iam-risk-engineering-toolkit/tools/evidence-register.html'}
+    ]
+  }
+};
+
+function showDetail(key){
+  const d = DETAILS[key];
+  if(!d) return;
+  document.querySelectorAll('.arch-node').forEach(n=>n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  const panel = document.getElementById('detailPanel');
+  const toolsHtml = d.tools.map(t=>`<a class="tool-ref" href="${t.href}">→ ${t.name}</a>`).join('');
+  const isoHtml = d.iso.map(i=>`<span class="iso-pill">${i}</span>`).join(' ');
+  const blocksHtml = d.blocks.map(b=>`
+    <div class="detail-block">
+      <h4>${b.title}</h4>
+      <ul>${b.items.map(i=>`<li>${i}</li>`).join('')}</ul>
+    </div>
+  `).join('');
+  panel.innerHTML = `
+    <div class="detail-header">
+      <div class="detail-icon">${d.icon}</div>
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:4px">${d.label}</div>
+        <div class="detail-title">${d.title}</div>
+        <div class="detail-subtitle">${d.subtitle}</div>
+        ${isoHtml ? `<div style="margin-top:8px">${isoHtml}</div>` : ''}
+        ${toolsHtml ? `<div style="margin-top:6px">${toolsHtml}</div>` : ''}
+      </div>
+    </div>
+    <div class="detail-grid">${blocksHtml}</div>
+  `;
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+</script>
+</body>
+</html>

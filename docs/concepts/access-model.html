@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IAM Access Model | Conceitos</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#003366;--navy-mid:#004080;--navy-light:#0056b3;--accent:#c8922a;
+  --accent-light:#e8a83a;--bg:#f4f6f8;--white:#fff;--gray:#666;
+  --border:#d1d9e4;--text:#1a2340;--green:#1a7a4a;--green-light:#e8f5ee;
+  --red:#a32020;--amber:#a06400;--amber-light:#fff8ed;--blue-light:#eef5ff;
+  --orange:#c2410c;--orange-light:#fff6ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.breadcrumb{background:var(--navy);padding:10px 30px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.4)}
+.breadcrumb a{color:var(--accent-light);text-decoration:none}.breadcrumb span{margin:0 6px}
+header{background:var(--navy);padding:48px 30px 44px;position:relative;overflow:hidden}
+header::after{content:'IAM';position:absolute;bottom:-16px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:120px;font-weight:700;color:rgba(255,255,255,.03);pointer-events:none}
+.hi{max-width:1100px;margin:auto;position:relative;z-index:1}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:rgba(200,146,42,.2);color:var(--accent-light);border:1px solid rgba(200,146,42,.4);padding:4px 12px;border-radius:3px;letter-spacing:2px;margin-bottom:16px}
+header h1{font-size:30px;font-weight:700;color:#fff;margin-bottom:10px}
+header h1 span{color:var(--accent-light)}
+header p{font-size:14px;color:rgba(255,255,255,.68);max-width:700px}
+main{max-width:1100px;margin:0 auto;padding:36px 30px 70px}
+.sl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:14px;margin-top:32px}
+.sl:first-child{margin-top:0}
+
+/* Premissa */
+.premise{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:6px;padding:22px 26px;margin-bottom:8px}
+.premise p{font-size:14px;color:var(--text);line-height:1.8}
+.premise strong{color:var(--navy)}
+
+/* Camadas */
+.layers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:8px}
+.layer-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:22px;transition:box-shadow .2s;text-decoration:none;display:block;color:inherit}
+.layer-card:hover{box-shadow:0 4px 16px rgba(0,51,102,.08);transform:translateY(-1px)}
+.layer-card.rbac{border-top:3px solid var(--navy-light)}
+.layer-card.pam{border-top:3px solid var(--orange)}
+.layer-card.sod{border-top:3px solid var(--red)}
+.layer-card.abac{border-top:3px solid var(--green)}
+.layer-card.pbac{border-top:3px solid var(--amber)}
+.lc-num{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.lc-title{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.lc-sub{font-size:12px;color:var(--gray);line-height:1.55;margin-bottom:12px}
+.lc-iso{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 7px;background:#f0f4fa;color:var(--navy-light);border-radius:3px;margin-right:3px}
+.lc-role{font-size:12px;color:var(--gray);margin-top:10px;font-style:italic}
+
+/* Fluxo */
+.flow-wrap{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:8px}
+.flow-steps{display:flex;align-items:stretch;gap:4px;flex-wrap:wrap;margin-top:14px}
+.fs{flex:1;min-width:110px;padding:12px 10px;border:1px solid var(--border);border-radius:6px;text-align:center;background:#fafbfc}
+.fs-n{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--accent);margin-bottom:3px;letter-spacing:1px}
+.fs-t{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:3px}
+.fs-d{font-size:11px;color:var(--gray)}
+.fa{font-size:16px;color:#c8d4e0;display:flex;align-items:center;flex-shrink:0}
+
+/* Objetivo */
+.obj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:8px}
+.obj-card{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:18px 20px}
+.obj-icon{font-size:22px;margin-bottom:8px}
+.obj-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.obj-desc{font-size:12px;color:var(--gray);line-height:1.65}
+
+/* Tabela ISO */
+.iso-table{background:var(--white);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:8px}
+.iso-table table{width:100%;border-collapse:collapse;font-size:12px}
+.iso-table th{background:#f8fafc;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--gray);padding:12px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.iso-table td{padding:11px 14px;border-bottom:1px solid #f0f2f5;vertical-align:top;line-height:1.5}
+.iso-table tr:last-child td{border-bottom:none}
+.iso-pill{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 7px;background:#f0f4fa;color:var(--navy-light);border-radius:3px}
+
+/* Aviso */
+.callout{background:var(--amber-light);border:1px solid #ecd4ab;border-radius:6px;padding:16px 20px;font-size:13px;color:var(--amber);line-height:1.7;margin-bottom:8px}
+.callout strong{color:#7a4a00}
+
+/* Footer */
+.footer-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:32px}
+.footer-link{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--navy-light);text-decoration:none;border:1px solid var(--border);background:#fff;border-radius:4px;padding:8px 12px}
+.footer-link:hover{border-color:var(--navy-light)}
+.footer-note{font-size:11px;color:var(--gray);margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+
+@media(max-width:800px){
+  .layers-grid,.obj-grid{grid-template-columns:1fr}
+  .flow-steps{flex-direction:column}.fa{justify-content:center;transform:rotate(90deg)}
+}
+</style>
+</head>
+<body>
+<div class="breadcrumb">
+  <a href="../../index.html">IAM-RISK-ENGINEERING-TOOLKIT</a><span>/</span>
+  <a href="#">docs</a><span>/</span>concepts<span>/</span>access-model
+</div>
+<header>
+  <div class="hi">
+    <div class="badge">CONCEITOS · MODELO DE ACESSO</div>
+    <h1>IAM Access Model — <span>RBAC · PAM · SoD</span></h1>
+    <p>Como os controles de acesso da ISO/IEC 27001:2022 podem ser estruturados de forma operacional. A norma define o que deve ser controlado. Este modelo organiza como esses controles são aplicados na prática.</p>
+  </div>
+</header>
+<main>
+
+  <div class="sl">Premissa</div>
+  <div class="premise">
+    <p>A ISO/IEC 27001:2022 define <strong>o que deve ser controlado</strong> — acesso, privilégio, segregação. Ela não define o como. RBAC, PAM, SoD, ABAC e PBAC são formas de <strong>operacionalizar</strong> esses controles em ambientes reais. Esses conceitos não são definidos diretamente pela norma, mas são o que transforma controles abstratos em modelos estruturados, auditáveis e executáveis.</p>
+  </div>
+
+  <div class="sl">Conceitos do modelo</div>
+  <div class="layers-grid">
+    <a href="rbac.html" class="layer-card rbac">
+      <div class="lc-num">BASE · CAMADA 1</div>
+      <div class="lc-title">RBAC</div>
+      <div class="lc-sub">Organiza acesso por função, não por usuário. É a base sem a qual análise de risco não tem estrutura.</div>
+      <span class="lc-iso">5.15</span><span class="lc-iso">8.3</span>
+      <div class="lc-role">RBAC é a base.</div>
+    </a>
+    <a href="pam.html" class="layer-card pam">
+      <div class="lc-num">PRIORIDADE · CAMADA 2</div>
+      <div class="lc-title">PAM</div>
+      <div class="lc-sub">Classifica acessos por impacto. Nem todo acesso precisa do mesmo nível de controle.</div>
+      <span class="lc-iso">8.2</span>
+      <div class="lc-role">PAM prioriza risco.</div>
+    </a>
+    <a href="sod.html" class="layer-card sod">
+      <div class="lc-num">ANÁLISE · CAMADA 3</div>
+      <div class="lc-title">SoD</div>
+      <div class="lc-sub">Detecta combinações de acesso que geram risco. Uma role pode ser segura; duas juntas podem criar um vetor crítico.</div>
+      <span class="lc-iso">5.3</span>
+      <div class="lc-role">SoD é a camada final de análise de risco.</div>
+    </a>
+    <a href="abac.html" class="layer-card abac">
+      <div class="lc-num">CONTEXTO · COMPLEMENTAR</div>
+      <div class="lc-title">ABAC</div>
+      <div class="lc-sub">Controla acesso com base em atributos — localização, dispositivo, risco de sessão. Quando RBAC não é suficiente.</div>
+      <span class="lc-iso">5.15</span>
+      <div class="lc-role">ABAC adiciona contexto ao acesso.</div>
+    </a>
+    <a href="pbac.html" class="layer-card pbac">
+      <div class="lc-num">POLÍTICA · COMPLEMENTAR</div>
+      <div class="lc-title">PBAC</div>
+      <div class="lc-sub">Centraliza decisões de acesso em políticas. Para ambientes complexos onde a lógica de acesso não cabe em roles simples.</div>
+      <span class="lc-iso">5.15</span>
+      <div class="lc-role">PBAC centraliza a decisão.</div>
+    </a>
+  </div>
+
+  <div class="sl">Fluxo dentro do ciclo IAM</div>
+  <div class="flow-wrap">
+    <p style="font-size:13px;color:var(--gray)">Cada etapa depende da anterior. RBAC sem PAM deixa privilégios descontrolados. PAM sem SoD não detecta combinações de risco.</p>
+    <div class="flow-steps">
+      <div class="fs"><div class="fs-n">ENTRADA</div><div class="fs-t">Identidade</div><div class="fs-d">JML</div></div>
+      <div class="fa">→</div>
+      <div class="fs"><div class="fs-n">RBAC</div><div class="fs-t">Acesso</div><div class="fs-d">Por função</div></div>
+      <div class="fa">→</div>
+      <div class="fs"><div class="fs-n">PAM</div><div class="fs-t">Privilégio</div><div class="fs-d">Por tier</div></div>
+      <div class="fa">→</div>
+      <div class="fs"><div class="fs-n">ABAC</div><div class="fs-t">Contexto</div><div class="fs-d">Por atributo</div></div>
+      <div class="fa">→</div>
+      <div class="fs"><div class="fs-n">SoD</div><div class="fs-t">Risco</div><div class="fs-d">Por combinação</div></div>
+      <div class="fa">→</div>
+      <div class="fs"><div class="fs-n">EVIDÊNCIA</div><div class="fs-t">Revisão</div><div class="fs-d">Decisão</div></div>
+    </div>
+  </div>
+
+  <div class="sl">Objetivo do modelo</div>
+  <div class="obj-grid">
+    <div class="obj-card">
+      <div class="obj-icon">🏗️</div>
+      <div class="obj-title">Estruturado</div>
+      <div class="obj-desc">Acesso organizado por função e criticidade, não concedido ad hoc por usuário.</div>
+    </div>
+    <div class="obj-card">
+      <div class="obj-icon">📋</div>
+      <div class="obj-title">Auditável</div>
+      <div class="obj-desc">Cada decisão de acesso rastreável com manifesto, hash e registro de evidência.</div>
+    </div>
+    <div class="obj-card">
+      <div class="obj-icon">⚙️</div>
+      <div class="obj-title">Executável</div>
+      <div class="obj-desc">Ferramentas locais que operacionalizam cada conceito sem backend ou integração direta.</div>
+    </div>
+  </div>
+
+  <div class="sl">Mapeamento ISO/IEC 27001:2022</div>
+  <div class="iso-table">
+    <table>
+      <thead><tr><th>Conceito</th><th>Controle</th><th>Descrição</th></tr></thead>
+      <tbody>
+        <tr><td><strong>RBAC</strong></td><td><span class="iso-pill">5.15</span></td><td>Access Control — estrutura de acesso baseada em função</td></tr>
+        <tr><td><strong>RBAC</strong></td><td><span class="iso-pill">8.3</span></td><td>Information Access Restriction — restrição de acesso por papel</td></tr>
+        <tr><td><strong>PAM</strong></td><td><span class="iso-pill">8.2</span></td><td>Privileged Access Rights — controle de contas privilegiadas</td></tr>
+        <tr><td><strong>SoD</strong></td><td><span class="iso-pill">5.3</span></td><td>Segregation of Duties — separação de funções incompatíveis</td></tr>
+        <tr><td><strong>ABAC</strong></td><td><span class="iso-pill">5.15</span></td><td>Access Control — condições contextuais de acesso</td></tr>
+        <tr><td><strong>PBAC</strong></td><td><span class="iso-pill">5.15</span></td><td>Access Control — políticas centralizadas de decisão</td></tr>
+        <tr><td><strong>Governança</strong></td><td><span class="iso-pill">5.18</span></td><td>Access Rights Review — manutenção e revisão periódica</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <strong>Importante:</strong> RBAC, PAM, SoD, ABAC e PBAC não são definidos diretamente pela ISO/IEC 27001:2022. São formas de operacionalizar seus controles em ambientes reais. A norma define o que deve existir; esses conceitos definem como implementar.
+  </div>
+
+  <div class="footer-links">
+    <a class="footer-link" href="../../index.html">← Início</a>
+    <a class="footer-link" href="rbac.html">RBAC →</a>
+    <a class="footer-link" href="pam.html">PAM →</a>
+    <a class="footer-link" href="sod.html">SoD →</a>
+    <a class="footer-link" href="abac.html">ABAC →</a>
+    <a class="footer-link" href="pbac.html">PBAC →</a>
+  </div>
+  <p class="footer-note">Conteúdo educacional independente. Baseado em normas públicas ISO/IEC 27001:2022 e documentação Microsoft Entra ID. Autor: Gilberto Gonçalves dos Santos Filho.</p>
+</main>
+</body>
+</html>

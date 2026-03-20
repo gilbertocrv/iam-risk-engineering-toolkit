@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoD Conflict Analyzer | IAM Série 4</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#003366;--navy-mid:#004080;--navy-light:#0056b3;--accent:#c8922a;
+  --accent-light:#e8a83a;--bg:#f4f6f8;--white:#fff;--gray:#666;
+  --border:#d1d9e4;--text:#1a2340;--green:#1a7a4a;--green-light:#e8f5ee;
+  --red:#a32020;--red-light:#fdf0f0;--amber:#a06400;--amber-light:#fff8ed;
+  --blue-light:#eef5ff;--orange:#c2410c;--orange-light:#fff6ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+header{background:var(--navy);padding:44px 30px 40px;position:relative;overflow:hidden}
+header::after{content:'SoD';position:absolute;bottom:-18px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:100px;font-weight:700;color:rgba(255,255,255,.03);pointer-events:none}
+.header-inner{max-width:1180px;margin:auto;position:relative;z-index:1}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:rgba(200,146,42,.2);color:var(--accent-light);border:1px solid rgba(200,146,42,.4);padding:4px 12px;border-radius:3px;letter-spacing:2px;margin-bottom:16px}
+header h1{font-size:30px;font-weight:700;color:#fff;margin-bottom:10px}
+header h1 span{color:var(--accent-light)}
+header p{font-size:14px;color:rgba(255,255,255,.7);max-width:760px}
+main{max-width:1180px;margin:0 auto;padding:28px 22px 60px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:18px}
+.section{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-6{grid-column:span 6}.span-4{grid-column:span 4}
+@media(max-width:920px){.span-8,.span-6,.span-4{grid-column:span 12}}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label{display:block;font-size:12px;color:var(--gray);margin-bottom:5px}
+input[type=text],input[type=file],select,textarea{width:100%;border:1px solid var(--border);border-radius:6px;padding:10px 12px;font:inherit;color:var(--text);background:#fff}
+textarea{min-height:90px;resize:vertical}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{border:none;border-radius:6px;padding:11px 14px;cursor:pointer;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.btn-primary{background:var(--navy);color:#fff}.btn-outline{background:#fff;border:1px solid var(--navy);color:var(--navy)}.btn-success{background:var(--green);color:#fff}.btn-danger{background:var(--red);color:#fff}
+.status{margin-top:14px;padding:12px 14px;border-radius:6px;border:1px solid var(--border);background:#fafbfc;font-size:12px;color:var(--gray)}
+.info{background:var(--blue-light);color:var(--navy-mid)}.ok{background:var(--green-light);color:var(--green)}.warn{background:var(--amber-light);color:var(--amber)}.err{background:var(--red-light);color:var(--red)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.kpi{border:1px solid var(--border);border-radius:6px;background:#fff;padding:16px}
+.kpi .v{font-size:26px;font-weight:700;color:var(--navy)}.kpi .l{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;font-family:'IBM Plex Mono',monospace}.kpi .s{font-size:12px;color:var(--gray);margin-top:4px}
+.kpi.critical .v{color:var(--red)}.kpi.high .v{color:var(--orange)}
+.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:6px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{border-bottom:1px solid var(--border);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f8fafc;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--gray)}
+tr:nth-child(even) td{background:#fcfdff}
+.pill{display:inline-block;padding:3px 8px;border-radius:999px;font:600 10px 'IBM Plex Mono',monospace}
+.p-critical{background:var(--red-light);color:var(--red)}.p-high{background:var(--orange-light);color:var(--orange)}.p-medium{background:var(--amber-light);color:var(--amber)}
+.iso-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;background:#f0f4fa;color:var(--navy-light);border-radius:3px}
+.note{font-size:12px;color:var(--gray)}
+.conflict-rule{border:1px solid var(--border);border-radius:6px;padding:12px 14px;background:#fafbfc;margin-bottom:8px}
+.conflict-rule h4{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.conflict-rule p{font-size:11px;color:var(--gray)}
+.cr-critical{border-left:3px solid var(--red)}.cr-high{border-left:3px solid var(--orange)}.cr-medium{border-left:3px solid var(--amber)}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="badge">SÉRIE 4 · SoD · ISO 5.3 · SC-300</div>
+    <h1>SoD <span>Conflict Analyzer</span></h1>
+    <p>Detecta combinações de roles do Microsoft Entra ID que introduzem risco de Segregação de Funções. SoD não analisa acessos isolados — analisa combinações. Uma role pode ser segura; duas roles juntas podem criar risco crítico.</p>
+  </div>
+</header>
+<main>
+<div class="grid">
+
+  <section class="card span-12">
+    <div class="section">Premissa — por que combinações importam</div>
+    <p style="font-size:13px;color:var(--gray);line-height:1.7">
+      No Microsoft Entra ID, certas combinações de roles criam situações onde um único usuário pode executar ações que deveriam exigir aprovação de outra pessoa — violando o princípio de Segregação de Funções (ISO 5.3). A análise de SoD não questiona se o acesso é necessário; questiona se a <strong>combinação</strong> é controlada. Exemplo: <em>User Administrator + Authentication Administrator</em> permite que um usuário crie contas e gerencie os métodos de autenticação dessas mesmas contas, sem necessidade de aprovação adicional.
+    </p>
+  </section>
+
+  <section class="card span-4">
+    <div class="section">Catálogo de conflitos — Entra ID</div>
+    <div id="conflictCatalogDisplay"></div>
+  </section>
+
+  <section class="card span-8">
+    <div class="section">1. Entrada</div>
+    <div class="meta-grid">
+      <div><label>CSV de roles (directory roles)</label><input type="file" id="rolesFile" accept=".csv"></div>
+      <div><label>Referência</label><input type="text" id="ref" placeholder="SOD-2026-Q1"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="analyze()">Analisar conflitos</button>
+      <button class="btn btn-outline" onclick="loadExample()">Carregar exemplo</button>
+      <button class="btn btn-danger" onclick="resetAll()">Limpar</button>
+    </div>
+    <div id="statusTop" class="status info">Carregue o CSV de roles ou use o cenário exemplo.</div>
+
+    <div style="margin-top:18px">
+      <div class="section">2. KPIs</div>
+      <div class="kpi-grid">
+        <div class="kpi critical"><div class="v" id="kCritical">0</div><div class="l">Críticos</div><div class="s">conflitos detectados</div></div>
+        <div class="kpi high"><div class="v" id="kHigh">0</div><div class="l">Altos</div><div class="s">conflitos detectados</div></div>
+        <div class="kpi"><div class="v" id="kMedium">0</div><div class="l">Médios</div><div class="s">conflitos detectados</div></div>
+        <div class="kpi"><div class="v" id="kUsers">0</div><div class="l">Identidades</div><div class="s">com conflito</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card span-12">
+    <div class="section">3. Conflitos detectados</div>
+    <div class="table-wrap">
+      <table id="conflictsTable">
+        <thead><tr><th>UPN</th><th>Conflito</th><th>Role A</th><th>Role B</th><th>Severidade</th><th>Risco</th><th>Controle ISO</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card span-12">
+    <div class="section">4. Exportação</div>
+    <div class="btn-row">
+      <button class="btn btn-success" onclick="exportCsv()">Baixar conflitos CSV</button>
+      <button class="btn btn-outline" onclick="exportJson()">Baixar JSON</button>
+    </div>
+    <p class="note" style="margin-top:10px">Conteúdo educacional. Baseado em normas públicas ISO/IEC 27001:2022 e documentação Microsoft Entra ID / SC-300. Os conflitos identificados são indicadores de risco — cada caso requer avaliação contextual antes de ação.</p>
+  </section>
+
+</div>
+</main>
+<script>
+// ─── CATÁLOGO DE CONFLITOS SoD — ENTRA ID ────────────────────────────────────
+const SOD_CONFLICTS = [
+  {id:'SOD-001', roleA:'Global Administrator', roleB:'Privileged Role Administrator', severity:'Critical', risk:'Controle total do tenant e capacidade de auto-escalonamento de privilégios sem supervisão.', iso:'5.3 · 8.2'},
+  {id:'SOD-002', roleA:'User Administrator', roleB:'Authentication Administrator', severity:'Critical', risk:'Criação de contas e controle dos métodos de autenticação dessas mesmas contas — ciclo fechado sem controle externo.', iso:'5.3 · 8.2'},
+  {id:'SOD-003', roleA:'Application Administrator', roleB:'Cloud Application Administrator', severity:'High', risk:'Gestão de aplicações locais e em nuvem pela mesma identidade — acesso amplo ao plano de aplicações sem separação.', iso:'5.3 · 5.15'},
+  {id:'SOD-004', roleA:'User Administrator', roleB:'Privileged Role Administrator', severity:'Critical', risk:'Criação de usuários e atribuição de roles privilegiadas — permite criar e promover identidades sem aprovação adicional.', iso:'5.3 · 8.2'},
+  {id:'SOD-005', roleA:'Security Administrator', roleB:'Conditional Access Administrator', severity:'High', risk:'Definição de políticas de segurança e controle das condições de acesso pela mesma identidade.', iso:'5.3 · 5.15'},
+  {id:'SOD-006', roleA:'Exchange Administrator', roleB:'Compliance Administrator', severity:'High', risk:'Administração de e-mail e controle de conformidade — potencial de manipular dados e auditoria simultaneamente.', iso:'5.3 · 5.15'},
+  {id:'SOD-007', roleA:'Global Administrator', roleB:'Security Administrator', severity:'High', risk:'Acesso irrestrito ao tenant e controle de políticas de segurança — concentração de controle sem separação.', iso:'5.3 · 8.2'},
+  {id:'SOD-008', roleA:'Authentication Administrator', roleB:'Privileged Authentication Administrator', severity:'Critical', risk:'Controle de MFA para usuários padrão e administradores — capacidade de contornar autenticação forte de contas privilegiadas.', iso:'5.3 · 8.2'},
+  {id:'SOD-009', roleA:'Intune Administrator', roleB:'Cloud Device Administrator', severity:'Medium', risk:'Gestão de políticas de dispositivo e acesso de administrador a dispositivos — escopo amplo sobre endpoints.', iso:'5.3 · 8.3'},
+  {id:'SOD-010', roleA:'Application Administrator', roleB:'Privileged Role Administrator', severity:'Critical', risk:'Registro de aplicações e atribuição de roles privilegiadas — permite criar service principals com privilégios elevados.', iso:'5.3 · 8.2'},
+];
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function setStatus(id,msg,cls){const el=document.getElementById(id);el.className='status '+cls;el.textContent=msg}
+function parseCsvLine(line){const out=[];let cur='';let q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(q&&line[i+1]==='"'){cur+='"';i++;}else q=!q;continue;}if(ch===','&&!q){out.push(cur);cur='';continue;}cur+=ch;}out.push(cur);return out;}
+function parseCsv(text){const lines=String(text||'').replace(/^\uFEFF/,'').split(/\r?\n/).filter(x=>x.trim()!=='');if(!lines.length)return[];const headers=parseCsvLine(lines[0]).map(h=>h.trim());return lines.slice(1).map(line=>{const values=parseCsvLine(line);const row={};headers.forEach((h,i)=>row[h]=values[i]!==undefined?values[i].trim():'');return row;});}
+function toCsv(rows){return rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n')}
+function download(name,content,type){const blob=new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(a.href);}
+
+const state={roles:[],conflicts:[]};
+
+function normalize(s){return String(s||'').toLowerCase().trim();}
+
+function detectConflicts(roles){
+  // Build UPN → set of roles
+  const upnRoles={};
+  roles.forEach(r=>{
+    const upn=(r.UserPrincipalName||r.UPN||r.upn||'');
+    const role=(r.RoleName||r.DisplayName||r.roleName||'');
+    if(!upn||!role) return;
+    if(!upnRoles[upn]) upnRoles[upn]=new Set();
+    upnRoles[upn].add(normalize(role));
+  });
+
+  const conflicts=[];
+  Object.entries(upnRoles).forEach(([upn,roleSet])=>{
+    SOD_CONFLICTS.forEach(c=>{
+      const hasA=roleSet.has(normalize(c.roleA));
+      const hasB=roleSet.has(normalize(c.roleB));
+      if(hasA&&hasB){
+        conflicts.push({upn,conflictId:c.id,roleA:c.roleA,roleB:c.roleB,severity:c.severity,risk:c.risk,iso:c.iso});
+      }
+    });
+  });
+  return conflicts;
+}
+
+function analyze(){
+  const rf=document.getElementById('rolesFile').files[0];
+  if(!rf){setStatus('statusTop','Carregue o CSV de roles.','warn');return;}
+  rf.text().then(text=>{
+    state.roles=parseCsv(text);
+    state.conflicts=detectConflicts(state.roles);
+    render();
+    const msg=state.conflicts.length===0
+      ?'Nenhum conflito SoD detectado com o catálogo atual.'
+      :`${state.conflicts.length} conflito(s) detectado(s) em ${new Set(state.conflicts.map(c=>c.upn)).size} identidade(s).`;
+    setStatus('statusTop',msg,state.conflicts.length>0?'warn':'ok');
+  });
+}
+
+function loadExample(){
+  state.roles=parseCsv(`RoleName,UserPrincipalName,IsPrivileged,AssignmentType
+Global Administrator,breakglass@contoso.com,true,Direct
+Privileged Role Administrator,breakglass@contoso.com,true,Direct
+User Administrator,ana.costa@contoso.com,true,Direct
+Authentication Administrator,ana.costa@contoso.com,true,Direct
+Application Administrator,gilberto@contoso.com,true,Direct
+Cloud Application Administrator,gilberto@contoso.com,true,Direct
+Security Administrator,security@contoso.com,true,Direct
+Global Reader,reader@contoso.com,false,Direct
+Helpdesk Administrator,suporte@contoso.com,false,Direct`);
+  state.conflicts=detectConflicts(state.roles);
+  render();
+  setStatus('statusTop',`Exemplo carregado: ${state.conflicts.length} conflito(s) detectado(s).`,'warn');
+}
+
+function render(){
+  const counts={Critical:0,High:0,Medium:0};
+  const users=new Set();
+  state.conflicts.forEach(c=>{counts[c.severity]=(counts[c.severity]||0)+1;users.add(c.upn);});
+  document.getElementById('kCritical').textContent=counts.Critical||0;
+  document.getElementById('kHigh').textContent=counts.High||0;
+  document.getElementById('kMedium').textContent=counts.Medium||0;
+  document.getElementById('kUsers').textContent=users.size;
+
+  const tbody=document.querySelector('#conflictsTable tbody');
+  tbody.innerHTML='';
+  if(!state.conflicts.length){
+    tbody.innerHTML='<tr><td colspan="7" style="color:var(--gray);text-align:center">Nenhum conflito detectado</td></tr>';
+    return;
+  }
+  const sevClass={Critical:'p-critical',High:'p-high',Medium:'p-medium'};
+  const sevPt={Critical:'Crítico',High:'Alto',Medium:'Médio'};
+  state.conflicts.sort((a,b)=>['Critical','High','Medium'].indexOf(a.severity)-['Critical','High','Medium'].indexOf(b.severity))
+  .forEach(c=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${esc(c.upn)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--navy-light)">${esc(c.conflictId)}</td>
+      <td style="font-size:12px">${esc(c.roleA)}</td>
+      <td style="font-size:12px">${esc(c.roleB)}</td>
+      <td><span class="pill ${sevClass[c.severity]||''}">${sevPt[c.severity]||c.severity}</span></td>
+      <td style="font-size:12px;color:var(--gray)">${esc(c.risk)}</td>
+      <td><span class="iso-tag">${esc(c.iso)}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderCatalog(){
+  const el=document.getElementById('conflictCatalogDisplay');
+  const sevClass={Critical:'cr-critical',High:'cr-high',Medium:'cr-medium'};
+  const sevPt={Critical:'Crítico',High:'Alto',Medium:'Médio'};
+  el.innerHTML=SOD_CONFLICTS.map(c=>`
+    <div class="conflict-rule ${sevClass[c.severity]||''}">
+      <h4>${esc(c.id)} — <span style="font-weight:400;color:var(--gray)">${sevPt[c.severity]}</span></h4>
+      <p><strong>${esc(c.roleA)}</strong> + <strong>${esc(c.roleB)}</strong></p>
+      <p style="margin-top:4px">${esc(c.risk)}</p>
+    </div>
+  `).join('');
+}
+
+function exportCsv(){
+  if(!state.conflicts.length){setStatus('statusTop','Nenhum conflito para exportar.','warn');return;}
+  const rows=[['UPN','ConflictId','RoleA','RoleB','Severity','Risk','ISOControl']];
+  state.conflicts.forEach(c=>rows.push([c.upn,c.conflictId,c.roleA,c.roleB,c.severity,c.risk,c.iso]));
+  download(`sod-conflicts-${new Date().toISOString().split('T')[0]}.csv`,toCsv(rows),'text/csv;charset=utf-8;');
+}
+function exportJson(){
+  if(!state.conflicts.length){setStatus('statusTop','Nenhum conflito para exportar.','warn');return;}
+  const payload={tool:'SoD Conflict Analyzer',version:'1.0.0',generatedAt:new Date().toISOString(),ref:document.getElementById('ref').value||null,catalogVersion:`${SOD_CONFLICTS.length} regras`,conflicts:state.conflicts};
+  download(`sod-conflicts-${new Date().toISOString().split('T')[0]}.json`,JSON.stringify(payload,null,2),'application/json;charset=utf-8;');
+}
+function resetAll(){
+  state.roles=[];state.conflicts=[];
+  document.getElementById('rolesFile').value='';document.getElementById('ref').value='';
+  document.querySelector('#conflictsTable tbody').innerHTML='';
+  ['kCritical','kHigh','kMedium','kUsers'].forEach(id=>document.getElementById(id).textContent='0');
+  setStatus('statusTop','Sessão limpa.','info');
+}
+
+renderCatalog();
+</script>
+</body>
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBAC Role Mapper | IAM Série 4</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#003366;--navy-mid:#004080;--navy-light:#0056b3;--accent:#c8922a;
+  --accent-light:#e8a83a;--bg:#f4f6f8;--white:#fff;--gray:#666;
+  --border:#d1d9e4;--text:#1a2340;--green:#1a7a4a;--green-light:#e8f5ee;
+  --red:#a32020;--red-light:#fdf0f0;--amber:#a06400;--amber-light:#fff8ed;
+  --blue-light:#eef5ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+header{background:var(--navy);padding:44px 30px 40px;position:relative;overflow:hidden}
+header::after{content:'RBAC';position:absolute;bottom:-18px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:100px;font-weight:700;color:rgba(255,255,255,.03);pointer-events:none}
+.header-inner{max-width:1180px;margin:auto;position:relative;z-index:1}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:rgba(200,146,42,.2);color:var(--accent-light);border:1px solid rgba(200,146,42,.4);padding:4px 12px;border-radius:3px;letter-spacing:2px;margin-bottom:16px}
+header h1{font-size:30px;font-weight:700;color:#fff;margin-bottom:10px}
+header h1 span{color:var(--accent-light)}
+header p{font-size:14px;color:rgba(255,255,255,.7);max-width:760px}
+main{max-width:1180px;margin:0 auto;padding:28px 22px 60px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:18px}
+.section{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-6{grid-column:span 6}.span-4{grid-column:span 4}
+@media(max-width:920px){.span-8,.span-6,.span-4{grid-column:span 12}}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label{display:block;font-size:12px;color:var(--gray);margin-bottom:5px}
+input[type=text],input[type=file],select,textarea{width:100%;border:1px solid var(--border);border-radius:6px;padding:10px 12px;font:inherit;color:var(--text);background:#fff}
+textarea{min-height:90px;resize:vertical}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{border:none;border-radius:6px;padding:11px 14px;cursor:pointer;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.btn-primary{background:var(--navy);color:#fff}.btn-outline{background:#fff;border:1px solid var(--navy);color:var(--navy)}.btn-success{background:var(--green);color:#fff}.btn-danger{background:var(--red);color:#fff}
+.status{margin-top:14px;padding:12px 14px;border-radius:6px;border:1px solid var(--border);background:#fafbfc;font-size:12px;color:var(--gray)}
+.info{background:var(--blue-light);color:var(--navy-mid)}.ok{background:var(--green-light);color:var(--green)}.warn{background:var(--amber-light);color:var(--amber)}.err{background:var(--red-light);color:var(--red)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:4px}
+.kpi{border:1px solid var(--border);border-radius:6px;background:#fff;padding:16px}
+.kpi .v{font-size:26px;font-weight:700;color:var(--navy)}.kpi .l{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;font-family:'IBM Plex Mono',monospace}.kpi .s{font-size:12px;color:var(--gray);margin-top:4px}
+.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:6px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{border-bottom:1px solid var(--border);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#f8fafc;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--gray)}
+tr:nth-child(even) td{background:#fcfdff}
+.pill{display:inline-block;padding:3px 8px;border-radius:999px;font:600 10px 'IBM Plex Mono',monospace}
+.p-high{background:#fff1f1;color:var(--red)}.p-medium{background:#fff8ed;color:var(--amber)}.p-low{background:#e8f5ee;color:var(--green)}
+.p-admin{background:#fff1f1;color:var(--red)}.p-priv{background:#fff6ec;color:#c2410c}.p-standard{background:#eef5ff;color:var(--navy-light)}
+.iso-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;background:#f0f4fa;color:var(--navy-light);border-radius:3px}
+.note{font-size:12px;color:var(--gray)}
+.code{background:#1e1e1e;color:#d4d4d4;border-radius:6px;padding:14px;font:12px 'IBM Plex Mono',monospace;white-space:pre-wrap;word-break:break-word}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="badge">SÉRIE 4 · RBAC · ISO 5.15 · 8.3 · SC-300</div>
+    <h1>RBAC <span>Role Mapper</span></h1>
+    <p>Mapeia a estrutura de roles e permissões do Microsoft Entra ID, classifica por tipo de acesso, identifica concentração de privilégio e gera inventário alinhado aos controles ISO/IEC 27001:2022 — 5.15 e 8.3.</p>
+  </div>
+</header>
+<main>
+<div class="grid">
+
+  <section class="card span-12">
+    <div class="section">1. Entrada — roles e memberships</div>
+    <div class="meta-grid">
+      <div><label>CSV de roles (directory roles export)</label><input type="file" id="rolesFile" accept=".csv"></div>
+      <div><label>CSV de groups (group memberships)</label><input type="file" id="groupsFile" accept=".csv"></div>
+      <div><label>Tenant / ambiente</label><input type="text" id="tenant" placeholder="contoso.onmicrosoft.com"></div>
+      <div><label>Referência da análise</label><input type="text" id="ref" placeholder="RBAC-2026-Q1"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="analyze()">Analisar estrutura</button>
+      <button class="btn btn-outline" onclick="loadExample()">Carregar exemplo</button>
+      <button class="btn btn-danger" onclick="resetAll()">Limpar</button>
+    </div>
+    <div id="statusTop" class="status info">Carregue os exports de roles e groups ou use o cenário exemplo.</div>
+  </section>
+
+  <section class="card span-12">
+    <div class="section">2. KPIs da estrutura RBAC</div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="v" id="kRoles">0</div><div class="l">Roles</div><div class="s">mapeadas</div></div>
+      <div class="kpi"><div class="v" id="kGroups">0</div><div class="l">Grupos</div><div class="s">mapeados</div></div>
+      <div class="kpi"><div class="v" id="kUsers">0</div><div class="l">Identidades</div><div class="s">únicas</div></div>
+      <div class="kpi"><div class="v" id="kAdmin">0</div><div class="l">Admin Roles</div><div class="s">classificadas</div></div>
+      <div class="kpi"><div class="v" id="kOrphan">0</div><div class="l">Sem usuário</div><div class="s">roles/grupos vazios</div></div>
+      <div class="kpi"><div class="v" id="kMulti">0</div><div class="l">Multi-role</div><div class="s">mais de 3 roles</div></div>
+    </div>
+  </section>
+
+  <section class="card span-8">
+    <div class="section">3. Inventário de roles</div>
+    <div class="note" style="margin-bottom:10px">Roles classificadas por tipo e alinhamento ISO. Roles administrativas do Entra ID são automaticamente identificadas.</div>
+    <div class="table-wrap">
+      <table id="rolesTable">
+        <thead><tr><th>Role / Grupo</th><th>Tipo</th><th>Membros</th><th>Controle ISO</th><th>Classificação</th><th>Observação</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card span-4">
+    <div class="section">4. Identidades com múltiplas roles</div>
+    <div class="note" style="margin-bottom:10px">Identidades com 3 ou mais roles/grupos atribuídos — candidatas a revisão de acumulação.</div>
+    <div class="table-wrap">
+      <table id="multiTable">
+        <thead><tr><th>UPN</th><th>Qtd</th><th>Roles/Grupos</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card span-12">
+    <div class="section">5. Exportação</div>
+    <div class="btn-row">
+      <button class="btn btn-success" onclick="exportCsv()">Baixar inventário CSV</button>
+      <button class="btn btn-outline" onclick="exportJson()">Baixar JSON</button>
+    </div>
+    <p class="note" style="margin-top:10px">Conteúdo educacional. Baseado em normas públicas e documentação Microsoft Entra ID / SC-300.</p>
+  </section>
+
+</div>
+</main>
+<script>
+// ─── ADMIN ROLES ENTRA ID (SC-300) ───────────────────────────────────────────
+const ADMIN_ROLES = new Set([
+  'global administrator','privileged role administrator','user administrator',
+  'authentication administrator','privileged authentication administrator',
+  'application administrator','cloud application administrator',
+  'exchange administrator','sharepoint administrator','teams administrator',
+  'security administrator','compliance administrator','conditional access administrator',
+  'intune administrator','password administrator','billing administrator',
+  'groups administrator','license administrator','directory writers',
+  'hybrid identity administrator','external identity provider administrator'
+]);
+const PRIV_ROLES = new Set([
+  'security reader','global reader','reports reader','directory readers',
+  'message center reader','service support administrator','helpdesk administrator',
+  'guest inviter','user','member'
+]);
+
+function classifyRole(name){
+  const n = name.toLowerCase().trim();
+  if(ADMIN_ROLES.has(n)) return {cls:'p-admin', label:'Administrativa', iso:'8.2 · 5.15'};
+  if(n.includes('admin') || n.includes('owner') || n.includes('operator') || n.includes('contributor'))
+    return {cls:'p-priv', label:'Privilegiada', iso:'8.2 · 5.15'};
+  if(PRIV_ROLES.has(n) || n.includes('reader') || n.includes('viewer'))
+    return {cls:'p-standard', label:'Leitura', iso:'5.15 · 8.3'};
+  return {cls:'p-standard', label:'Padrão', iso:'5.15'};
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function setStatus(id,msg,cls){const el=document.getElementById(id);el.className='status '+cls;el.textContent=msg}
+function parseCsvLine(line){
+  const out=[]; let cur=''; let q=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){if(q&&line[i+1]==='"'){cur+='"';i++;}else q=!q;continue;}
+    if(ch===','&&!q){out.push(cur);cur='';continue;}
+    cur+=ch;
+  }
+  out.push(cur);
+  return out;
+}
+function parseCsv(text){
+  const lines=String(text||'').replace(/^\uFEFF/,'').split(/\r?\n/).filter(x=>x.trim()!=='');
+  if(!lines.length) return [];
+  const headers=parseCsvLine(lines[0]).map(h=>h.trim());
+  return lines.slice(1).map(line=>{
+    const values=parseCsvLine(line);
+    const row={};
+    headers.forEach((h,i)=>row[h]=values[i]!==undefined?values[i].trim():'');
+    return row;
+  });
+}
+function toCsv(rows){return rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n')}
+function download(name,content,type){
+  const blob=new Blob([content],{type});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(a.href);
+}
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const state = {roles:[],groups:[],result:null};
+
+// ─── ANÁLISE ──────────────────────────────────────────────────────────────────
+function buildInventory(roles, groups){
+  const upnMap = {}; // upn → set of role/group names
+
+  const rolesInv = roles.map(r=>{
+    const name = r.RoleName || r.DisplayName || r.Name || r.roleName || '';
+    const upns = roles.filter(x=>(x.RoleName||x.DisplayName||x.Name||x.roleName||'')===name)
+      .map(x=>x.UserPrincipalName||x.UPN||x.upn||'').filter(Boolean);
+    upns.forEach(u=>{ if(!upnMap[u]) upnMap[u]=new Set(); upnMap[u].add(name); });
+    return {name, type:'Role', members:[...new Set(upns)], ...classifyRole(name)};
+  });
+
+  // deduplicate roles
+  const seenRoles = new Set();
+  const dedupRoles = rolesInv.filter(r=>{ if(seenRoles.has(r.name)) return false; seenRoles.add(r.name); return true; });
+
+  const groupsInv = groups.map(g=>{
+    const name = g.GroupName || g.DisplayName || g.Name || g.groupName || '';
+    const upns = groups.filter(x=>(x.GroupName||x.DisplayName||x.Name||x.groupName||'')===name)
+      .map(x=>x.UserPrincipalName||x.UPN||x.upn||'').filter(Boolean);
+    upns.forEach(u=>{ if(!upnMap[u]) upnMap[u]=new Set(); upnMap[u].add(name); });
+    return {name, type:'Grupo', members:[...new Set(upns)], ...classifyRole(name)};
+  });
+
+  const seenGroups = new Set();
+  const dedupGroups = groupsInv.filter(g=>{ if(seenGroups.has(g.name)) return false; seenGroups.add(g.name); return true; });
+
+  const all = [...dedupRoles, ...dedupGroups];
+  const multiRole = Object.entries(upnMap)
+    .filter(([,s])=>s.size>=3)
+    .map(([upn,s])=>({upn, count:s.size, names:[...s].join(', ')}))
+    .sort((a,b)=>b.count-a.count);
+
+  const uniqueUsers = new Set(Object.keys(upnMap)).size;
+  const adminCount = all.filter(x=>x.label==='Administrativa').length;
+  const orphans = all.filter(x=>x.members.length===0).length;
+
+  return {all, multiRole, uniqueUsers, adminCount, orphans};
+}
+
+async function analyze(){
+  const rf = document.getElementById('rolesFile').files[0];
+  const gf = document.getElementById('groupsFile').files[0];
+  if(!rf && !gf){ setStatus('statusTop','Carregue ao menos um arquivo CSV (roles ou groups).','warn'); return; }
+  if(rf) state.roles = parseCsv(await rf.text());
+  if(gf) state.groups = parseCsv(await gf.text());
+  state.result = buildInventory(state.roles, state.groups);
+  render();
+  setStatus('statusTop',`Análise concluída: ${state.result.all.length} role(s)/grupo(s) mapeados, ${state.result.uniqueUsers} identidade(s) únicas.`,'ok');
+}
+
+function loadExample(){
+  state.roles = parseCsv(`RoleName,UserPrincipalName,IsPrivileged,AssignmentType
+Global Administrator,breakglass@contoso.com,true,Direct
+Privileged Role Administrator,breakglass@contoso.com,true,Direct
+User Administrator,ana.costa@contoso.com,true,Direct
+User Administrator,svc.provisioning@contoso.com,true,Direct
+Authentication Administrator,ana.costa@contoso.com,true,Direct
+Security Reader,bruno.lima@contoso.com,false,Direct
+Global Reader,gilberto@contoso.com,false,Direct
+Helpdesk Administrator,suporte@contoso.com,false,Direct`);
+  state.groups = parseCsv(`GroupName,UserPrincipalName,GroupCategory,Sensitivity
+Finance-Admins,ana.costa@contoso.com,Security,Critical
+Finance-Admins,breakglass@contoso.com,Security,Critical
+Prod-Admins,svc.provisioning@contoso.com,Security,Critical
+Security-Reviewers,gilberto@contoso.com,Security,Critical
+Security-Reviewers,bruno.lima@contoso.com,Security,Critical
+HR-Portal,carolina@contoso.com,Business,Medium
+Vendor-Access,vendor@contoso.com,Business,Low
+Empty-Group,,Business,Low`);
+  state.result = buildInventory(state.roles, state.groups);
+  render();
+  setStatus('statusTop','Cenário exemplo carregado.','info');
+}
+
+function render(){
+  const r = state.result;
+  if(!r) return;
+  document.getElementById('kRoles').textContent = r.all.filter(x=>x.type==='Role').length;
+  document.getElementById('kGroups').textContent = r.all.filter(x=>x.type==='Grupo').length;
+  document.getElementById('kUsers').textContent = r.uniqueUsers;
+  document.getElementById('kAdmin').textContent = r.adminCount;
+  document.getElementById('kOrphan').textContent = r.orphans;
+  document.getElementById('kMulti').textContent = r.multiRole.length;
+
+  const tbody = document.querySelector('#rolesTable tbody');
+  tbody.innerHTML = '';
+  r.all.forEach(item=>{
+    const obs = item.members.length===0 ? '⚠ Sem membros' :
+      item.label==='Administrativa' && item.members.length>2 ? `⚠ ${item.members.length} membros em role crítica` : '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${esc(item.name)}</strong></td>
+      <td><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray)">${esc(item.type)}</span></td>
+      <td>${item.members.length}</td>
+      <td><span class="iso-tag">${esc(item.iso)}</span></td>
+      <td><span class="pill ${item.cls}">${esc(item.label)}</span></td>
+      <td style="font-size:12px;color:${obs.startsWith('⚠')?'var(--amber)':'var(--gray)'}">${esc(obs)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const tbody2 = document.querySelector('#multiTable tbody');
+  tbody2.innerHTML = '';
+  if(!r.multiRole.length){
+    tbody2.innerHTML = '<tr><td colspan="3" style="color:var(--gray);text-align:center">Nenhuma identidade com 3+ roles/grupos</td></tr>';
+  } else {
+    r.multiRole.forEach(m=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${esc(m.upn)}</td>
+        <td><strong style="color:var(--red)">${m.count}</strong></td>
+        <td style="font-size:11px;color:var(--gray)">${esc(m.names)}</td>
+      `;
+      tbody2.appendChild(tr);
+    });
+  }
+}
+
+function exportCsv(){
+  if(!state.result){ setStatus('statusTop','Execute a análise antes de exportar.','warn'); return; }
+  const rows = [['Nome','Tipo','Membros','ControleISO','Classificacao']];
+  state.result.all.forEach(r=>rows.push([r.name,r.type,r.members.length,r.iso,r.label]));
+  download(`rbac-inventory-${new Date().toISOString().split('T')[0]}.csv`, toCsv(rows), 'text/csv;charset=utf-8;');
+}
+function exportJson(){
+  if(!state.result){ setStatus('statusTop','Execute a análise antes de exportar.','warn'); return; }
+  const payload = {
+    tool:'RBAC Role Mapper', version:'1.0.0', generatedAt:new Date().toISOString(),
+    tenant:document.getElementById('tenant').value||null,
+    ref:document.getElementById('ref').value||null,
+    summary:{ roles:state.result.all.filter(x=>x.type==='Role').length, groups:state.result.all.filter(x=>x.type==='Grupo').length, uniqueUsers:state.result.uniqueUsers, adminRoles:state.result.adminCount, orphans:state.result.orphans, multiRoleUsers:state.result.multiRole.length },
+    inventory:state.result.all, multiRoleUsers:state.result.multiRole
+  };
+  download(`rbac-inventory-${new Date().toISOString().split('T')[0]}.json`, JSON.stringify(payload,null,2), 'application/json;charset=utf-8;');
+}
+function resetAll(){
+  state.roles=[];state.groups=[];state.result=null;
+  document.getElementById('rolesFile').value='';document.getElementById('groupsFile').value='';
+  document.getElementById('tenant').value='';document.getElementById('ref').value='';
+  document.querySelector('#rolesTable tbody').innerHTML='';
+  document.querySelector('#multiTable tbody').innerHTML='';
+  ['kRoles','kGroups','kUsers','kAdmin','kOrphan','kMulti'].forEach(id=>document.getElementById(id).textContent='0');
+  setStatus('statusTop','Sessão limpa.','info');
+}
+</script>
+</body>
+</html>

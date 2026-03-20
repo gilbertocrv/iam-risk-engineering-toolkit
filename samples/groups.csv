@@ -1,0 +1,9 @@
+GroupName,UserPrincipalName,GroupCategory,Sensitivity
+Finance-Admins,ana.costa@contoso.com,Security,Critical
+Finance-Admins,breakglass@contoso.com,Security,Critical
+Prod-Admins,gilberto@contoso.com,Security,Critical
+Prod-Admins,ana.costa@contoso.com,Security,Critical
+Security-Reviewers,security@contoso.com,Security,Critical
+HR-Portal,carolina@contoso.com,Business,Medium
+Vendor-Access,vendor@contoso.com,Business,Low
+Empty-Group,,Business,Low
