@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Model | IAM Risk Engineering Toolkit</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#003366;--navy-mid:#004080;--navy-light:#0056b3;--accent:#c8922a;
+  --accent-light:#e8a83a;--bg:#f4f6f8;--white:#fff;--gray:#666;
+  --border:#d1d9e4;--text:#1a2340;--green:#1a7a4a;--green-light:#e8f5ee;
+  --red:#a32020;--red-light:#fdf0f0;--amber:#a06400;--amber-light:#fff8ed;
+  --blue-light:#eef5ff;--orange:#c2410c;--orange-light:#fff6ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.breadcrumb{background:var(--navy);padding:10px 30px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.4)}
+.breadcrumb a{color:var(--accent-light);text-decoration:none}.breadcrumb span{margin:0 6px}
+header{background:var(--navy);padding:44px 30px 40px;position:relative;overflow:hidden}
+header::after{content:'DATA';position:absolute;bottom:-16px;right:20px;font-family:'IBM Plex Mono',monospace;font-size:100px;font-weight:700;color:rgba(255,255,255,.03);pointer-events:none}
+.hi{max-width:1100px;margin:auto;position:relative;z-index:1}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:rgba(200,146,42,.2);color:var(--accent-light);border:1px solid rgba(200,146,42,.4);padding:4px 12px;border-radius:3px;letter-spacing:2px;margin-bottom:16px}
+header h1{font-size:28px;font-weight:700;color:#fff;margin-bottom:10px}
+header h1 span{color:var(--accent-light)}
+header p{font-size:14px;color:rgba(255,255,255,.68);max-width:700px}
+main{max-width:1100px;margin:0 auto;padding:36px 30px 70px}
+.sl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:14px;margin-top:32px}
+.sl:first-child{margin-top:0}
+
+/* Princípio */
+.premise{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:6px;padding:20px 24px;margin-bottom:8px}
+.premise p{font-size:14px;color:var(--text);line-height:1.8}
+.premise strong{color:var(--navy)}
+
+/* Entidades */
+.entities-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-bottom:8px}
+.entity-card{background:var(--white);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.entity-header{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.entity-header.identity{background:#f0f4fa}
+.entity-header.role{background:var(--blue-light)}
+.entity-header.assignment{background:var(--green-light)}
+.entity-header.pam{background:var(--orange-light)}
+.entity-header.sod{background:var(--red-light)}
+.entity-header.risk{background:#1a2340}
+.entity-name{font-size:14px;font-weight:700;color:var(--navy)}
+.entity-header.risk .entity-name{color:#fff}
+.entity-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--gray)}
+.entity-header.risk .entity-num{color:rgba(255,255,255,.5)}
+.entity-desc{font-size:12px;color:var(--gray);padding:10px 18px;border-bottom:1px solid var(--border);line-height:1.6}
+.code-block{background:#1e1e1e;color:#d4d4d4;padding:14px 18px;font:12px 'IBM Plex Mono',monospace;white-space:pre;overflow-x:auto;line-height:1.65}
+.json-key{color:#9cdcfe}.json-str{color:#ce9178}.json-num{color:#b5cea8}.json-bool{color:#569cd6}.json-comment{color:#6a9955}
+
+/* Pipeline */
+.pipeline{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:8px}
+.pipeline-steps{display:flex;flex-direction:column;gap:0;margin-top:14px}
+.ps{display:flex;align-items:stretch;gap:0}
+.ps-line{width:2px;background:var(--border);margin:0 20px;flex-shrink:0}
+.ps-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:14px;margin-right:-6px;position:relative;z-index:1}
+.ps-content{flex:1;padding:10px 0 10px 16px}
+.ps-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.ps-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:3px}
+.ps-desc{font-size:12px;color:var(--gray)}
+.ps-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 7px;background:#f0f4fa;color:var(--navy-light);border-radius:3px;margin-top:4px;display:inline-block}
+
+/* Outputs */
+.outputs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:8px}
+.output-card{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:16px 18px}
+.output-card h4{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.output-card ul{padding-left:16px;font-size:13px;color:var(--gray);line-height:1.75}
+
+/* Conclusão */
+.conclusion{background:#1a2340;border-radius:8px;padding:24px 28px;margin-bottom:8px}
+.conclusion p{font-size:14px;color:rgba(255,255,255,.75);line-height:1.8}
+.conclusion strong{color:#fff}
+.conclusion .quote{font-size:15px;color:rgba(255,255,255,.9);border-left:3px solid var(--accent);padding-left:16px;margin-top:16px;font-style:italic}
+
+/* Nav */
+.nav-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px;padding-top:16px;border-top:1px solid var(--border)}
+.nav-link{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--navy-light);text-decoration:none;border:1px solid var(--border);background:#fff;border-radius:4px;padding:8px 12px}
+.nav-link:hover{border-color:var(--navy-light)}
+.fn{font-size:11px;color:var(--gray);margin-top:12px}
+
+@media(max-width:700px){.entities-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="breadcrumb">
+  <a href="../index.html">IAM-RISK-ENGINEERING-TOOLKIT</a><span>/</span>docs<span>/</span>data-model
+</div>
+
+<header>
+  <div class="hi">
+    <div class="badge">DOCS · DATA MODEL</div>
+    <h1>Data <span>Model</span></h1>
+    <p>O modelo de dados que conecta as ferramentas do toolkit. Define como dados brutos de acesso são transformados em objetos de risco estruturados — identidade, role, assignment, contexto de privilégio, conflito SoD e risco derivado.</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- Princípio -->
+  <div class="sl">Princípio</div>
+  <div class="premise">
+    <p>Risco em IAM não é um atributo isolado. Ele é <strong>derivado da combinação</strong> de identidade, acesso (roles e grupos), privilégio (criticidade por tier) e contexto (atividade, MFA, localização). Uma identidade sem role privilegiada é de baixo risco. A mesma identidade com duas roles em conflito SoD, sem MFA e inativa há 120 dias, é risco crítico. O modelo transforma essa lógica em estruturas processáveis.</p>
+  </div>
+
+  <!-- Entidades -->
+  <div class="sl">Entidades principais</div>
+  <div class="entities-grid">
+
+    <div class="entity-card">
+      <div class="entity-header identity">
+        <span class="entity-name">Identity</span>
+        <span class="entity-num">2.1</span>
+      </div>
+      <div class="entity-desc">Entidade autenticável. Ponto de entrada de toda análise — usuário interno, convidado ou conta de serviço.</div>
+      <div class="code-block"><span class="json-key">"id"</span>: <span class="json-str">"uuid"</span>,
+<span class="json-key">"upn"</span>: <span class="json-str">"user@contoso.com"</span>,
+<span class="json-key">"type"</span>: <span class="json-str">"internal | guest | service"</span>,
+<span class="json-key">"status"</span>: <span class="json-str">"active | disabled"</span>,
+<span class="json-key">"lastSignIn"</span>: <span class="json-str">"datetime"</span></div>
+    </div>
+
+    <div class="entity-card">
+      <div class="entity-header role">
+        <span class="entity-name">Role</span>
+        <span class="entity-num">2.2</span>
+      </div>
+      <div class="entity-desc">Capacidade atribuída. Classifica o acesso por tipo e criticidade — base do modelo RBAC.</div>
+      <div class="code-block"><span class="json-key">"id"</span>: <span class="json-str">"role-id"</span>,
+<span class="json-key">"name"</span>: <span class="json-str">"User Administrator"</span>,
+<span class="json-key">"type"</span>: <span class="json-str">"directory-role | group"</span>,
+<span class="json-key">"classification"</span>: <span class="json-str">"admin | privileged | standard"</span>,
+<span class="json-key">"iso"</span>: [<span class="json-str">"5.15"</span>, <span class="json-str">"8.2"</span>]</div>
+    </div>
+
+    <div class="entity-card">
+      <div class="entity-header assignment">
+        <span class="entity-name">Assignment</span>
+        <span class="entity-num">2.3</span>
+      </div>
+      <div class="entity-desc">Relaciona identidade com roles. Registra fonte e momento da atribuição — base de correlação entre datasets.</div>
+      <div class="code-block"><span class="json-key">"identityId"</span>: <span class="json-str">"uuid"</span>,
+<span class="json-key">"roleId"</span>: <span class="json-str">"role-id"</span>,
+<span class="json-key">"source"</span>: <span class="json-str">"direct | group"</span>,
+<span class="json-key">"assignedAt"</span>: <span class="json-str">"datetime"</span></div>
+    </div>
+
+    <div class="entity-card">
+      <div class="entity-header pam">
+        <span class="entity-name">Privilege Context</span>
+        <span class="entity-num">2.4 · PAM</span>
+      </div>
+      <div class="entity-desc">Define criticidade do acesso por tier. Determina quais controles adicionais são esperados para cada role.</div>
+      <div class="code-block"><span class="json-key">"roleId"</span>: <span class="json-str">"role-id"</span>,
+<span class="json-key">"tier"</span>: <span class="json-str">"T0 | T1 | T2 | T3"</span>,
+<span class="json-key">"requiresMFA"</span>: <span class="json-bool">true</span>,
+<span class="json-key">"isPrivileged"</span>: <span class="json-bool">true</span></div>
+    </div>
+
+    <div class="entity-card">
+      <div class="entity-header sod">
+        <span class="entity-name">SoD Conflict Rule</span>
+        <span class="entity-num">2.5 · SoD</span>
+      </div>
+      <div class="entity-desc">Define incompatibilidade entre duas roles. Independente de identidade — é o catálogo aplicado em tempo de análise.</div>
+      <div class="code-block"><span class="json-key">"conflictId"</span>: <span class="json-str">"SOD-001"</span>,
+<span class="json-key">"roleA"</span>: <span class="json-str">"User Administrator"</span>,
+<span class="json-key">"roleB"</span>: <span class="json-str">"Authentication Administrator"</span>,
+<span class="json-key">"severity"</span>: <span class="json-str">"critical"</span>,
+<span class="json-key">"risk"</span>: <span class="json-str">"Cria conta e controla autenticação"</span>,
+<span class="json-key">"iso"</span>: [<span class="json-str">"5.3"</span>, <span class="json-str">"8.2"</span>]</div>
+    </div>
+
+    <div class="entity-card">
+      <div class="entity-header risk">
+        <span class="entity-name">Risk Object</span>
+        <span class="entity-num">2.6 · CENTRAL</span>
+      </div>
+      <div class="entity-desc" style="background:#f8fafc">Unidade central do modelo. Representa uma violação potencial ou real — derivada da combinação de identidade, roles e contexto.</div>
+      <div class="code-block"><span class="json-key">"identityId"</span>: <span class="json-str">"uuid"</span>,
+<span class="json-key">"roles"</span>: [<span class="json-str">"Role A"</span>, <span class="json-str">"Role B"</span>],
+<span class="json-key">"conflictId"</span>: <span class="json-str">"SOD-001"</span>,
+<span class="json-key">"severity"</span>: <span class="json-str">"critical"</span>,
+<span class="json-key">"context"</span>: {
+  <span class="json-key">"tier"</span>: <span class="json-str">"T1"</span>,
+  <span class="json-key">"mfa"</span>: <span class="json-bool">false</span>,
+  <span class="json-key">"lastSignIn"</span>: <span class="json-str">"2026-01-10"</span>
+}</div>
+    </div>
+
+  </div>
+
+  <!-- Pipeline -->
+  <div class="sl">Pipeline de dados</div>
+  <div class="pipeline">
+    <p style="font-size:13px;color:var(--gray)">Transformação de dados brutos em objetos de risco estruturados — cada etapa produz a entrada da próxima.</p>
+    <div class="pipeline-steps">
+      <div class="ps">
+        <div class="ps-dot"></div>
+        <div style="width:2px;background:var(--border);margin:24px 20px 0;flex-shrink:0"></div>
+        <div class="ps-content">
+          <div class="ps-label">Entrada</div>
+          <div class="ps-title">roles.csv + groups.csv + signins.csv</div>
+          <div class="ps-desc">Exports do Microsoft Entra ID — dados brutos sem estrutura de risco.</div>
+          <span class="ps-tag">Identity · Role · Assignment (raw)</span>
+        </div>
+      </div>
+      <div class="ps">
+        <div class="ps-dot"></div>
+        <div style="width:2px;background:var(--border);margin:24px 20px 0;flex-shrink:0"></div>
+        <div class="ps-content">
+          <div class="ps-label">Etapa 1</div>
+          <div class="ps-title">RBAC Mapper</div>
+          <div class="ps-desc">Normaliza roles e grupos em objetos Role. Correlaciona por UPN gerando objetos Assignment. Detecta roles sem membros e identidades com múltiplas atribuições.</div>
+          <span class="ps-tag">→ Role objects · Assignment objects</span>
+        </div>
+      </div>
+      <div class="ps">
+        <div class="ps-dot"></div>
+        <div style="width:2px;background:var(--border);margin:24px 20px 0;flex-shrink:0"></div>
+        <div class="ps-content">
+          <div class="ps-label">Etapa 2</div>
+          <div class="ps-title">PAM Classification</div>
+          <div class="ps-desc">Aplica o modelo de tiers sobre os objetos Role. Gera Privilege Context para cada role privilegiada. Enriquece com dados de MFA e inatividade do dataset signins.</div>
+          <span class="ps-tag">→ Privilege Context objects</span>
+        </div>
+      </div>
+      <div class="ps">
+        <div class="ps-dot"></div>
+        <div style="width:2px;background:var(--border);margin:24px 20px 0;flex-shrink:0"></div>
+        <div class="ps-content">
+          <div class="ps-label">Etapa 3</div>
+          <div class="ps-title">SoD Detection</div>
+          <div class="ps-desc">Cruza os Assignments de cada identidade com o catálogo de SoD Conflict Rules. Para cada par de roles que corresponde a um conflito, instancia um Risk Object com contexto de privilégio.</div>
+          <span class="ps-tag">→ Risk Objects · Conflict instances</span>
+        </div>
+      </div>
+      <div class="ps">
+        <div class="ps-dot" style="background:var(--green)"></div>
+        <div class="ps-content" style="padding-bottom:0">
+          <div class="ps-label">Saída</div>
+          <div class="ps-title">Risk Objects estruturados</div>
+          <div class="ps-desc">Conjunto de objetos de risco prontos para decisão — cada um com identidade, roles envolvidas, conflito, severidade e contexto completo.</div>
+          <span class="ps-tag">→ findings.csv · manifest.json</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Outputs -->
+  <div class="sl">Outputs por camada</div>
+  <div class="outputs-grid">
+    <div class="output-card">
+      <h4>Inventário — RBAC</h4>
+      <ul>
+        <li>Roles classificadas por tipo</li>
+        <li>Grupos por criticidade</li>
+        <li>Identidades e atribuições</li>
+        <li>Roles e grupos órfãos</li>
+      </ul>
+    </div>
+    <div class="output-card">
+      <h4>Privilégio — PAM</h4>
+      <ul>
+        <li>Contas por tier (T0–T2)</li>
+        <li>Ausência de MFA</li>
+        <li>Inatividade acima do limiar</li>
+        <li>Contas de serviço sem controle</li>
+      </ul>
+    </div>
+    <div class="output-card">
+      <h4>Conflitos — SoD</h4>
+      <ul>
+        <li>Lista de violações por identidade</li>
+        <li>Severidade por conflito</li>
+        <li>Risco derivado da combinação</li>
+        <li>Mapeamento ISO por regra</li>
+      </ul>
+    </div>
+    <div class="output-card">
+      <h4>Sustentabilidade</h4>
+      <ul>
+        <li>Roles e grupos órfãos</li>
+        <li>Identidades sobrecarregadas</li>
+        <li>Acumulação acima do limiar</li>
+        <li>Grupos com volume atípico</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Conclusão -->
+  <div class="sl">Objetivo do modelo</div>
+  <div class="conclusion">
+    <p>O modelo transforma dados brutos de acesso em <strong>informação estruturada de risco</strong>. Cada Risk Object é auditável, rastreável e diretamente acionável no ciclo de recertificação — sem subjetividade, sem análise ad hoc.</p>
+    <div class="quote">IAM maduro não analisa usuários.<br>Analisa estruturas de risco.</div>
+  </div>
+
+  <div class="nav-row">
+    <a class="nav-link" href="../index.html">← Início</a>
+    <a class="nav-link" href="architecture.html">Arquitetura →</a>
+    <a class="nav-link" href="../tools/rbac/role-mapper.html">RBAC Role Mapper →</a>
+    <a class="nav-link" href="../tools/sod/sod-model.html">SoD Conflict Analyzer →</a>
+  </div>
+  <p class="fn">Conteúdo educacional independente. Baseado em normas públicas ISO/IEC 27001:2022 e documentação Microsoft Entra ID. Autor: Gilberto Gonçalves dos Santos Filho.</p>
+
+</main>
+</body>
+</html>
